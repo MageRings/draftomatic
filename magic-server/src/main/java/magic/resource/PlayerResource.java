@@ -1,7 +1,7 @@
 package magic.resource;
 
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import magic.data.Player;
 
@@ -22,6 +22,6 @@ public class PlayerResource {
     @GET
     @Path("/list")
     public List<Player> listPlayers() {
-        return ImmutableList.of(new Player("A. Square"));
+        return Lists.newArrayList();
     }
 }

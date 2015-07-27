@@ -3,13 +3,13 @@ package magic.data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class Result {
+public class Result implements Comparable<Result> {
 
     public static final int POINTS_FOR_MATCH_WIN = 3;
     public static final int POINTS_FOR_MATCH_LOSS = 0;
     public static final int POINTS_FOR_MATCH_DRAW = 1;
 
-    enum Outcome {
+    public enum Outcome {
         P1_WIN,
         P1_LOSS,
         DRAW
@@ -88,6 +88,11 @@ public class Result {
     }
 
     @Override
+    public String toString() {
+        return "Result [pairing=" + pairing + ", p1Wins=" + p1Wins + ", p2Wins=" + p2Wins + ", draws=" + draws + "]";
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -116,6 +121,24 @@ public class Result {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public int compareTo(Result o) {
+        if (o == null) {
+            return 1;
+        }
+        int comparison = pairing.compareTo(o.pairing);
+        if (comparison != 0) {
+            return comparison;
+        }
+        if (p1Wins != o.p1Wins) {
+            return Integer.compare(p1Wins, o.p1Wins);
+        }
+        if (p2Wins != o.p2Wins) {
+            return Integer.compare(p2Wins, o.p2Wins);
+        }
+        return Integer.compare(draws, o.draws);
     }
 
 }

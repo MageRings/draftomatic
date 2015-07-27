@@ -1,8 +1,9 @@
 package magic.resource;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.NavigableSet;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -36,28 +37,26 @@ public class TournamentResource {
     @Produces("application/json")
     public String registerTournament(@QueryParam("format") Format format,
                                      @QueryParam("code") Optional<String> formatCode,
-                                     List<Player> players) {
+                                     Collection<Player> players) {
         return jsonifyString(manager.registerTournament(format, formatCode, players));
     }
 
-    @POST
-    @Path("/pairings/{tournamentId}/{round}")
+    @GET
+    @Path("/pairings/{tournamentId}")
     @Produces("application/json")
     public NavigableSet<Pairing> getPairings(
                                              @PathParam("tournamentId") String tournamentId,
-                                             @PathParam("round") int round,
-                                             List<Player> players) {
+                                             @PathParam("round") int round) {
         return manager.getTournament(tournamentId).getPairings(round);
     }
 
     @PUT
-    @Path("/pairings/{tournamentId}/{round}")
+    @Path("/results/{tournamentId}/{round}")
     @Produces("application/json")
-    public List<Result> registerResults(
-                                        @PathParam("tournamentId") String tournamentId,
-                                        @PathParam("round") int round,
-                                        List<Result> results) {
-        manager.getTournament(tournamentId).registerResults(round, results);
-        return results;
+    public NavigableSet<Result> registerResults(
+                                                @PathParam("tournamentId") String tournamentId,
+                                                @PathParam("round") int round,
+                                                Collection<Result> results) {
+        return manager.getTournament(tournamentId).registerResults(round, results);
     }
 }

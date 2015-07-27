@@ -13,7 +13,7 @@ public class Pairing implements Comparable<Pairing> {
         this.totalPoints = totalPoints;
         Preconditions.checkNotNull(player1, "Player 1 cannot be null!");
         Preconditions.checkNotNull(player2, "Player 2 cannot be null!");
-        if (player1.compareTo(player2) > 0) {
+        if (player1.getId() < player2.getId()) {
             this.player1 = player1;
             this.player2 = player2;
         } else {
@@ -33,6 +33,48 @@ public class Pairing implements Comparable<Pairing> {
     @Override
     public String toString() {
         return "Pairing [player1=" + player1 + ", player2=" + player2 + ", totalPoints=" + totalPoints + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((player1 == null) ? 0 : player1.hashCode());
+        result = prime * result + ((player2 == null) ? 0 : player2.hashCode());
+        result = prime * result + totalPoints;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Pairing other = (Pairing) obj;
+        if (player1 == null) {
+            if (other.player1 != null) {
+                return false;
+            }
+        } else if (!player1.equals(other.player1)) {
+            return false;
+        }
+        if (player2 == null) {
+            if (other.player2 != null) {
+                return false;
+            }
+        } else if (!player2.equals(other.player2)) {
+            return false;
+        }
+        if (totalPoints != other.totalPoints) {
+            return false;
+        }
+        return true;
     }
 
     @Override

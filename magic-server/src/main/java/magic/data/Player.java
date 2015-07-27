@@ -6,22 +6,37 @@ import com.google.common.base.Preconditions;
 
 public class Player implements Comparable<Player> {
 
+    public static final Player BYE = new Player();
+
     private final String name;
+    private final int id;
+
+    private Player() {
+        this.name = "BYE";
+        this.id = 0;
+    }
 
     @JsonCreator
-    public Player(@JsonProperty("name") String name) {
+    public Player(@JsonProperty("name") String name,
+                  @JsonProperty("id") int id) {
         this.name = Preconditions.checkNotNull(name, "Name cannot be null!");
+        Preconditions.checkArgument(id > 0, "Player id must be greater than 0.");
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
+    public int getId() {
+        return id;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + id;
         return result;
     }
 
@@ -37,11 +52,7 @@ public class Player implements Comparable<Player> {
             return false;
         }
         Player other = (Player) obj;
-        if (name == null) {
-            if (other.name != null) {
-                return false;
-            }
-        } else if (!name.equals(other.name)) {
+        if (id != other.id) {
             return false;
         }
         return true;
@@ -49,7 +60,7 @@ public class Player implements Comparable<Player> {
 
     @Override
     public String toString() {
-        return "Player [name=" + name + "]";
+        return "Player [name=" + name + ", id=" + id + "]";
     }
 
     @Override
@@ -57,6 +68,6 @@ public class Player implements Comparable<Player> {
         if (o == null) {
             return 1;
         }
-        return this.name.compareTo(o.name);
+        return Integer.compare(id, o.id);
     }
 }
