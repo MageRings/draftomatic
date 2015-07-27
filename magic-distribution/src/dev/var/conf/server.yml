@@ -22,6 +22,7 @@ server:
     - type: http
       port: 8001
   adminContextPath: /
+  registerDefaultExceptionMappers: false
   requestLog:
     appenders:
       - type: file
