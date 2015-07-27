@@ -1,0 +1,35 @@
+// =======
+// Plugins
+// =======
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+// ============
+// Repositories
+// ============
+repositories {
+    mavenCentral()
+}
+
+// ============
+// Dependencies
+// ============
+dependencies {
+    compile 'io.dropwizard:dropwizard-core:0.8.1'
+    compile ('com.bazaarvoice.dropwizard:dropwizard-configurable-assets-bundle:0.2.2') {
+        exclude group: 'io.dropwizard'
+    }
+    compile 'com.google.guava:guava:18.0'
+    compile 'postgresql:postgresql:9.0-801.jdbc4'
+
+    compile 'org.choco-solver:choco-solver:3.3.0'
+    compile 'org.choco-solver:choco-graph:3.3.0'
+
+    testCompile 'junit:junit:4.12'
+}
+
+// ==================
+// Group + Versioning
+// ==================
+group 'magic'
+version rootProject.version

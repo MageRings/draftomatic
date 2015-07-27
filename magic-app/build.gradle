@@ -1,0 +1,68 @@
+apply plugin: 'com.moowork.gulp'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+node {
+    nodeModulesDir = file('..')
+}
+
+configurations {
+    web
+    webDebug
+}
+
+gulp {
+    bufferOutput true
+}
+
+ext {
+    gulpPublishTask = 'gulp_publish'
+    buildMinDir = "$buildDir/min"
+}
+
+task distTar(type: Tar) {
+    dependsOn project.gulpPublishTask
+    from project.buildMinDir
+    exclude '**/*.map'
+}
+
+task debugDistTar(type: Tar) {
+    dependsOn project.gulpPublishTask
+    from project.buildMinDir
+    classifier = 'debug'
+}
+
+tasks.addRule('Pattern: gulp_<taskname>') { String taskName ->
+    if (taskName.startsWith('gulp_')) {
+        tasks.getByName(taskName).with {
+            dependsOn rootProject.tasks.getByName('setupNpm')
+
+            inputs.dir 'bower_components'
+            inputs.dir 'src'
+            inputs.dir 'test'
+            inputs.dir 'typings'
+            inputs.file '../npm-shrinkwrap.json'
+            inputs.file 'bower.json'
+            inputs.file 'gulpfile.js'
+            outputs.dir "$buildDir/min"
+            outputs.dir "$buildDir/src"
+            outputs.dir "$buildDir/test"
+            outputs.dir "$buildDir/tmp"
+        }
+    }
+}
+
+tasks.withType(Tar) {
+    compression Compression.GZIP
+    extension = 'tgz'
+}
+
+artifacts {
+    web distTar
+    webDebug debugDistTar
+}
+
+// ==========
+// Versioning
+// ==========
+version rootProject.version

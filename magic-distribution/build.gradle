@@ -1,0 +1,62 @@
+// =======
+// Plugins
+// =======
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+// ==============
+// Configurations
+// ==============
+configurations {
+    web
+    webDebug
+}
+
+// ============
+// Repositories
+// ============
+repositories {
+    mavenCentral()
+}
+
+// ============
+// Dependencies
+// ============
+dependencies {
+    runtime project(':magic-server')
+
+    web project(path: ':magic-app', configuration: 'web')
+    webDebug project(path: ':magic-app', configuration: 'webDebug')
+}
+
+tasks.getByName('assemble') {
+    dependsOn configurations.web
+    dependsOn configurations.webDebug
+}
+
+// ==================
+// Group + Versioning
+// ==================
+group 'magic'
+version rootProject.version
+
+// ======================================
+// Configure Eclipse Project Dependencies
+// ======================================
+eclipse {
+    project {
+        referencedProjects 'magic-server'
+    }
+}
+
+// =========================
+// Run: Enable ./gradlew run
+// =========================
+task run(type: JavaExec) {
+    dependsOn ':magic-app:gulp_build'
+
+    classpath project.sourceSets.main.runtimeClasspath
+    main 'magic.MagicApplication'
+    args 'server', "$projectDir/src/dev/var/conf/server.yml"
+    workingDir "$projectDir/src/dev/"
+}

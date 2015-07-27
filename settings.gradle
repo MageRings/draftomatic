@@ -1,0 +1,5 @@
+rootProject.name = "magic"
+
+include "magic-app"
+include "magic-server"
+include "magic-distribution"

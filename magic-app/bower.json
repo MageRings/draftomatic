@@ -1,0 +1,40 @@
+{
+  "name": "magic-app",
+  "version": "0.1.0",
+  "main": [
+    "build/src/utils.js",
+    "build/src/app.js",
+    "build/src/tournamentController.js",
+    "build/src/match/matchController.js",
+    "build/src/match/matchDirective.js",
+    "build/src/draftConfig/draftConfigController.js",
+    "build/src/draftConfig/draftConfigDirective.js",
+    "build/src/app.css"
+  ],
+  "devMain": [
+    "build/test/appTests.js",
+    "build/test/todo/todoControllerTests.js"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "coverage",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-ui-router": "0.2.13",
+    "jquery": "2.1.4",
+    "lodash": "~3.10.0",
+    "bootstrap": "~3.3.5",
+    "ui-autocomplete": "~0.6.1",
+    "jquery-ui": "~1.11.4",
+    "angular-ui": "~0.4.0",
+    "angular-bootstrap": "~0.13.0"
+  },
+  "devDependencies": {
+    "angular-mocks": "1.4.1"
+  }
+}

@@ -1,0 +1,38 @@
+<div id="wrapper">
+  <div id="initialSetup">
+    <div>
+      <select name="select" ng-model="tournamentModel.format">
+        <option ng-repeat="format in draftConfigController.formats" value="{{format}}">{{format}}</option>
+      </select>
+    </div>
+    <div>
+      <select name="select" ng-model="tournamentModel.set">
+        <option ng-repeat="set in draftConfigController.sets" value="{{set.value}}">{{set.name}}</option>
+      </select>
+    </div>
+    <div>
+      <select name="select" ng-model="tournamentModel.bestOf">
+        <option ng-repeat="bestOf in draftConfigController.bestOfs" ng-value="{{bestOf}}">{{bestOf}}</option>
+      </select>
+    </div>
+    <div>
+      <input ng-model="tournamentModel.numRounds" id="numRounds" name="numRounds" placeholder="Number of Rounds" type="text"/>
+    </div>
+  </div>
+
+  <p>
+
+  <div id="playerEntry">
+    <!-- In here, set up the players - probably a table that we add rows to?-->
+    <div> 
+      <h1>
+        <span id="playerTotal" class="label label-default">Players: ({{tournamentModel.players.length}})</span> 
+      </h1>
+    </div>
+    <div ng-repeat="player in tournamentModel.players">{{player.name}} <div class="removePlayer btn btn-danger" ng-click="draftConfigController.removePlayer(player)"> Remove Player </div> </div>
+        <div class="playerName"> Player:</div>
+        <input type="text" ng-model="draftConfigController.pendingPlayerName" typeahead="player.name for player in tournamentModel.players | filter: $viewValue" ng-keyup="$event.keyCode == 13 && draftConfigController.addPendingPlayer()""/>
+      <div id="newPlayer" class="btn btn-primary" ng-click="draftConfigController.addPendingPlayer()"> Add a new player! </div>          
+    </table>        
+  </div>
+</div>

@@ -1,0 +1,35 @@
+// =====
+// Build
+// =====
+buildscript {
+
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "commons-codec:commons-codec:1.9"
+        classpath "com.moowork.gradle:gradle-node-plugin:0.10"
+        classpath "com.moowork.gradle:gradle-gulp-plugin:0.10"
+    }
+}
+
+// ============
+// Repositories
+// ============
+
+// ==========
+// Versioning
+// ==========
+version = '1.0'
+
+// ====
+// Node
+// ====
+apply from: "$rootDir/gradle/node.gradle"

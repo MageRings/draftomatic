@@ -1,0 +1,27 @@
+apply plugin: 'com.moowork.node'
+
+// ====================
+// NodeJS Configuration
+// ====================
+node {
+    // Version of node to use.
+    version = '0.12.4'
+
+    // Version of npm to use.
+    npmVersion = '2.12.0'
+
+    // Base URL for fetching node distributions (change if you have a mirror).
+    distBaseUrl = 'http://nodejs.org/dist'
+
+    // If true, it will download node using above parameters.
+    // If false, it will try to use globally installed node.
+    download = false
+
+    // Set the work directory for unpacking node
+    workDir = file("${project.buildDir}/nodejs")
+}
+
+task setupNpm {
+    dependsOn 'nodeSetup', 'npmInstall'
+}
+
