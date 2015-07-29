@@ -2,12 +2,15 @@ package magic.swiss;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
-import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
@@ -25,10 +28,11 @@ import com.google.common.collect.Sets;
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
+
 public class SwissTournament {
 
-    private final ConcurrentNavigableMap<Integer, Map<Player, Result>> results = new ConcurrentSkipListMap<>();
-    private final Map<Integer, Player> players = Maps.newHashMap();
+    private final ConcurrentNavigableMap<Integer, Map<Player, Result>> overallResults = new ConcurrentSkipListMap<>();
+    private final ConcurrentMap<Integer, Player> players = Maps.newConcurrentMap();
 
     public SwissTournament(Collection<Player> players) {
         for (Player p : players) {
@@ -38,31 +42,31 @@ public class SwissTournament {
             this.players.put(p.getId(), p);
         }
         if (this.players.size() % 2 != 0) {
-            //add in a bye
+            // add in a bye
             this.players.put(0, Player.BYE);
         }
     }
 
     public synchronized NavigableSet<Result> registerResults(int thisRound, Collection<Result> thisRoundResults) {
-        if (results.size() == 0) {
+        if (overallResults.size() == 0) {
             if (thisRound != 1) {
                 throw new IllegalArgumentException("Still waiting on results from the first round!");
             }
-        } else if (results.lastKey() > thisRound) {
+        } else if (overallResults.lastKey() > thisRound) {
             throw new IllegalArgumentException("We have already paired the next round!  Undo that round first");
         }
         Map<Player, Result> newResultEntry = Maps.newHashMap();
         for (Result r : thisRoundResults) {
             Result resultToRecord = r;
-            //player 1 must be the bye since the bye has the lowest id
+            // player 1 must be the bye since the bye has the lowest id
             if (r.getPairing().getPlayer1().equals(Player.BYE)) {
                 resultToRecord = new Result(r.getPairing(), 0, 2, 0);
             }
             newResultEntry.put(resultToRecord.getPairing().getPlayer1(), resultToRecord);
             newResultEntry.put(resultToRecord.getPairing().getPlayer2(), resultToRecord);
         }
-        results.put(thisRound, newResultEntry);
-        return Sets.newTreeSet(results.get(thisRound).values());
+        overallResults.put(thisRound, newResultEntry);
+        return Sets.newTreeSet(overallResults.get(thisRound).values());
     }
 
     Constraint cannotPlayAgain(IntVar player1, IntVar player2) {
@@ -76,41 +80,34 @@ public class SwissTournament {
     public synchronized NavigableSet<Pairing> getPairings(int round) {
         // check for previous cached pairings
 
-        return calculatePairings();
+        return calculatePairings(overallResults.values());
     }
 
-    private int getPointsForPlayer(Map<Player, Integer> pointsPerPlayer, Result result, Player player) {
-        int points = 0;
-        if (pointsPerPlayer.containsKey(player)) {
-            points = pointsPerPlayer.get(player);
+    private Map<Player, Integer> calculatePointsPerPlayer(Collection<Map<Player, Result>> results) {
+        if (results.isEmpty()) {
+            return players.values().stream().collect(Collectors.toMap(Function.identity(), player -> 0));
         }
-        points += result.getPointsForPlayer(player);
-        return points;
+        return results.stream().collect(HashMap::new,
+                (map, resultPerPlayer) -> resultPerPlayer.entrySet().stream()
+                        .forEach(entry -> map.put(entry.getKey(), entry.getValue().getPointsForPlayer(entry.getKey()))),
+                (finalMap, map) -> map.forEach((k, v) -> finalMap.merge(k, v, Integer::sum)));
+    }
+    
+    private Multimap<Player, Player> alreadyMatched(Collection<Map<Player, Result>> results) {
+        return results.stream().collect(HashMultimap::create,
+                (map, resultPerPlayer) -> resultPerPlayer.entrySet().stream()
+                    .forEach(entry -> {
+                        Pairing pairing = entry.getValue().getPairing();
+                        map.put(entry.getKey(), pairing.getPlayer1().equals(entry.getKey()) ? pairing.getPlayer2() : pairing.getPlayer1());
+                    }),
+                (finalMap, map2) -> map2.asMap().forEach(finalMap::putAll));
     }
 
-    private synchronized NavigableSet<Pairing> calculatePairings() {
-        Multimap<Player, Player> alreadyMatched = HashMultimap.create();
-        Map<Player, Integer> pointsPerPlayer = Maps.newHashMap();
-        for (Player p : players.values()) {
-            pointsPerPlayer.put(p, 0);
-        }
-        for (Map<Player, Result> roundResults : results.values()) {
-            Set<Result> resultsUsed = Sets.newHashSet();
-            for (Result result : roundResults.values()) {
-                Pairing pairing = result.getPairing();
-                // one of these ids is the player. we don't really care
-                alreadyMatched.put(pairing.getPlayer1(), pairing.getPlayer2());
-                alreadyMatched.put(pairing.getPlayer2(), pairing.getPlayer1());
-                if (!resultsUsed.contains(result)) {
-                    pointsPerPlayer.put(pairing.getPlayer1(), getPointsForPlayer(pointsPerPlayer, result, pairing.getPlayer1()));
-                    pointsPerPlayer.put(pairing.getPlayer2(), getPointsForPlayer(pointsPerPlayer, result, pairing.getPlayer2()));
-                }
-                resultsUsed.add(result);
-            }
-        }
-        // NavigableMap<Integer, Integer> numberOfPlayersAtEachPointLevel =
-        // getNumberOfPlayersAtEachPointLevel(pointsPerPlayer);
-        Multimap<Integer, Player> playersAtEachPointLevel = Multimaps.invertFrom(Multimaps.forMap(pointsPerPlayer), HashMultimap.<Integer, Player> create());
+    private NavigableSet<Pairing> calculatePairings(Collection<Map<Player, Result>> results) {
+        Multimap<Player, Player> alreadyMatched = alreadyMatched(results);
+        Map<Player, Integer> pointsPerPlayer = calculatePointsPerPlayer(results);
+        Multimap<Integer, Player> playersAtEachPointLevel = Multimaps.invertFrom(Multimaps.forMap(pointsPerPlayer),
+                HashMultimap.<Integer, Player> create());
         Solver solver = new Solver();
         Map<Player, IntVar> playerVariables = createPlayerVariables(solver, playersAtEachPointLevel);
         disallowRepairing(solver, playerVariables, alreadyMatched);
@@ -161,7 +158,7 @@ public class SwissTournament {
 
     private Map<Player, IntVar> createOneTierOfPlayers(Solver solver, int rangeStart, int rangeEnd, Collection<Player> playersInTier) {
         // must be shuffled to ensure a random result each time this is run
-        List<Player> shuffledPlayers = Lists.newArrayList(playersInTier); // TODO: handle drops
+        List<Player> shuffledPlayers = Lists.newArrayList(playersInTier);
         Collections.shuffle(shuffledPlayers);
         Map<Player, IntVar> result = Maps.newHashMap();
         for (int i = 0; i < shuffledPlayers.size(); i++) {
