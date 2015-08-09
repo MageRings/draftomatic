@@ -1,5 +1,8 @@
 package magic.swiss;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,6 +14,7 @@ import java.util.stream.Collectors;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.io.BaseEncoding;
 
 import magic.data.Player;
 import magic.data.Result;
@@ -32,8 +36,9 @@ public class TieBreakers implements Comparable<TieBreakers> {
     private final double opponentMatchWinPercentage;
     private final double gameWinPercentage;
     private final double opponentGameWinPercentage;
+    private final byte[] finalTiebreaker;
     
-    public static Map<Player, TieBreakers> getTieBreakers(Collection<Map<Player, Result>> results, Map<Player, Integer> pointsPerPlayer) {
+    public static Map<Player, TieBreakers> getTieBreakers(Collection<Map<Player, Result>> results, Map<Player, Integer> pointsPerPlayer, String tournamentId) {
         Map<Player, Collection<Result>> flatResults = getFlatResults(results);
         Map<Player, Double> opponentMatchWinPercentages = calculateOpponentWinPercentages(flatResults,
                 calculatePlayerMatchWinPercentages(flatResults, pointsPerPlayer),
@@ -43,14 +48,21 @@ public class TieBreakers implements Comparable<TieBreakers> {
                 playerGameWinPercentages,
                 DEFAULT_GAME_WIN_PERCENTAGE);
         
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         return pointsPerPlayer.keySet().stream().collect(Collectors.toMap(
                 Function.identity(),
                 player -> new TieBreakers(player,
                         pointsPerPlayer.get(player),
                         opponentMatchWinPercentages.get(player),
                         playerGameWinPercentages.get(player),
-                        opponentGameWinPercentages.get(player))
-                ));
+                        opponentGameWinPercentages.get(player),
+                        md.digest((tournamentId + player.getId()).getBytes(StandardCharsets.UTF_8))
+                )));
     }
     
     public Player getPlayer() {
@@ -73,17 +85,18 @@ public class TieBreakers implements Comparable<TieBreakers> {
         if (opponentGameWinPercentage != other.opponentGameWinPercentage) {
             return opponentGameWinPercentage > other.opponentGameWinPercentage ? GREATER : LESS;
         }
-        return 0;
+        return BaseEncoding.base32Hex().encode(finalTiebreaker).compareTo(BaseEncoding.base32Hex().encode(other.finalTiebreaker));
     }
     
     @VisibleForTesting
     /* package */ TieBreakers(Player player, int matchPoints, double opponentMatchWinPercentage, double gameWinPercentage,
-            double opponentGameWinPercentage) {
+            double opponentGameWinPercentage, byte[] finalTiebreaker) {
         this.player = player;
         this.matchPoints = matchPoints;
         this.opponentMatchWinPercentage = opponentMatchWinPercentage;
         this.gameWinPercentage = gameWinPercentage;
         this.opponentGameWinPercentage = opponentGameWinPercentage;
+        this.finalTiebreaker = finalTiebreaker;
     }
     
     private static Map<Player, Collection<Result>> getFlatResults(Collection<Map<Player, Result>> results) {

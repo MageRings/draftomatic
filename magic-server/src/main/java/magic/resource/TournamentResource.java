@@ -2,6 +2,7 @@ package magic.resource;
 
 import java.util.Collection;
 import java.util.NavigableSet;
+import java.util.Optional;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -10,8 +11,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-
-import com.google.common.base.Optional;
 
 import magic.data.Format;
 import magic.data.Pairing;
@@ -36,11 +35,11 @@ public class TournamentResource {
     @Path("/register")
     @Produces("application/json")
     public String registerTournament(
-            @QueryParam("rounds") Optional<Integer> rounds,
+            @QueryParam("rounds") Integer rounds,
             @QueryParam("format") Format format,
-            @QueryParam("code") Optional<String> formatCode,
+            @QueryParam("code") String formatCode,
             Collection<Player> players) {
-        return jsonifyString(manager.registerTournament(rounds, format, formatCode, players));
+        return jsonifyString(manager.registerTournament(Optional.ofNullable(rounds), Optional.ofNullable(format), Optional.ofNullable(formatCode), players));
     }
 
     @GET

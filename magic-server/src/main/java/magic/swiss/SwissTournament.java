@@ -31,12 +31,14 @@ import magic.data.Player;
 import magic.data.Result;
 
 public class SwissTournament {
-    
+
+    private final String tournamentId;
     private final ConcurrentNavigableMap<Integer, Map<Player, Result>> overallResults = new ConcurrentSkipListMap<>();
     private final ConcurrentMap<Integer, Player> players = Maps.newConcurrentMap();
     private final int numberOfRounds;
 
-    public SwissTournament(int numberOfRounds, Collection<Player> players) {
+    public SwissTournament(String tournamentId, int numberOfRounds, Collection<Player> players) {
+        this.tournamentId = tournamentId;
         for (Player p : players) {
             if (players.contains(p.getId())) {
                 throw new IllegalArgumentException("Two players have the same id: " + p.getId());
@@ -115,7 +117,7 @@ public class SwissTournament {
                 HashMultimap.<Integer, Player> create());
         Optional<Map<Player, TieBreakers>> tieBreakers = Optional.empty();
         if (lastRound) {
-            tieBreakers = Optional.of(TieBreakers.getTieBreakers(results, pointsPerPlayer));
+            tieBreakers = Optional.of(TieBreakers.getTieBreakers(results, pointsPerPlayer, tournamentId));
         }
         Solver solver = new Solver();
         Map<Player, IntVar> playerVariables = createPlayerVariables(solver, playersAtEachPointLevel, tieBreakers);
@@ -180,5 +182,55 @@ public class SwissTournament {
             result.put(shuffledPlayers.get(i), createPlayerVariable(solver, i, rangeStart, rangeEnd));
         }
         return result;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + numberOfRounds;
+        result = prime * result + ((overallResults == null) ? 0 : overallResults.hashCode());
+        result = prime * result + ((players == null) ? 0 : players.hashCode());
+        result = prime * result + ((tournamentId == null) ? 0 : tournamentId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        SwissTournament other = (SwissTournament) obj;
+        if (numberOfRounds != other.numberOfRounds) {
+            return false;
+        }
+        if (overallResults == null) {
+            if (other.overallResults != null) {
+                return false;
+            }
+        } else if (!overallResults.equals(other.overallResults)) {
+            return false;
+        }
+        if (players == null) {
+            if (other.players != null) {
+                return false;
+            }
+        } else if (!players.equals(other.players)) {
+            return false;
+        }
+        if (tournamentId == null) {
+            if (other.tournamentId != null) {
+                return false;
+            }
+        } else if (!tournamentId.equals(other.tournamentId)) {
+            return false;
+        }
+        return true;
     }
 }
