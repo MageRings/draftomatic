@@ -35,10 +35,12 @@ public class TournamentResource {
     @POST
     @Path("/register")
     @Produces("application/json")
-    public String registerTournament(@QueryParam("format") Format format,
-                                     @QueryParam("code") Optional<String> formatCode,
-                                     Collection<Player> players) {
-        return jsonifyString(manager.registerTournament(format, formatCode, players));
+    public String registerTournament(
+            @QueryParam("rounds") Optional<Integer> rounds,
+            @QueryParam("format") Format format,
+            @QueryParam("code") Optional<String> formatCode,
+            Collection<Player> players) {
+        return jsonifyString(manager.registerTournament(rounds, format, formatCode, players));
     }
 
     @GET

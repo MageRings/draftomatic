@@ -9,6 +9,10 @@ public class Result implements Comparable<Result> {
     public static final int POINTS_FOR_MATCH_LOSS = 0;
     public static final int POINTS_FOR_MATCH_DRAW = 1;
 
+    public static final int POINTS_FOR_GAME_WIN = 3;
+    public static final int POINTS_FOR_GAME_LOSS = 0;
+    public static final int POINTS_FOR_GAME_DRAW = 1;
+
     public enum Outcome {
         P1_WIN,
         P1_LOSS,
@@ -45,24 +49,39 @@ public class Result implements Comparable<Result> {
     public int getDraws() {
         return draws;
     }
+    
+    @JsonIgnore
+    public boolean isBye() {
+        // player 1 must be the bye since the bye has the lowest id
+        return pairing.getPlayer1().equals(Player.BYE);
+    }
+    
+    @JsonIgnore
+    public int getGamePointsForPlayer(Player player) {
+        if (pairing.isPlayer1(player)) {
+            return p1Wins * POINTS_FOR_GAME_WIN + p2Wins * POINTS_FOR_GAME_LOSS + draws * POINTS_FOR_GAME_DRAW;
+        } else {
+            return p2Wins * POINTS_FOR_GAME_WIN + p1Wins * POINTS_FOR_GAME_LOSS + draws * POINTS_FOR_GAME_DRAW;
+        }
+    }
 
     @JsonIgnore
     public int getPointsForPlayer(Player player) {
-        if (player.equals(pairing.getPlayer1())) {
+        if (pairing.isPlayer1(player)) {
             switch (determineOutcome()) {
             case P1_WIN: return POINTS_FOR_MATCH_WIN;
             case P1_LOSS: return POINTS_FOR_MATCH_LOSS;
             case DRAW: return POINTS_FOR_MATCH_DRAW;
+            default: throw new IllegalStateException();
             }
-        }
-        if (player.equals(pairing.getPlayer2())) {
+        } else {
             switch (determineOutcome()) {
             case P1_WIN: return POINTS_FOR_MATCH_LOSS;
             case P1_LOSS: return POINTS_FOR_MATCH_WIN;
             case DRAW: return POINTS_FOR_MATCH_DRAW;
+            default: throw new IllegalStateException();
             }
         }
-        throw new IllegalArgumentException("Player " + player + " was not involved in this match!");
     }
 
     @JsonIgnore
@@ -74,6 +93,11 @@ public class Result implements Comparable<Result> {
             return Outcome.P1_LOSS;
         }
         return Outcome.DRAW;
+    }
+    
+    @JsonIgnore
+    public int getNumberOfGames() {
+        return p1Wins + p2Wins + draws;
     }
 
     @Override

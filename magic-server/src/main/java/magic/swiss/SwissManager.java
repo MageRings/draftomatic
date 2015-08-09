@@ -14,7 +14,7 @@ public class SwissManager {
 
     ConcurrentMap<String, SwissTournament> runningTournaments = Maps.newConcurrentMap();
 
-    public String registerTournament(Format format, Optional<String> formatCode, Collection<Player> players) {
+    public String registerTournament(Optional<Integer> rounds, Format format, Optional<String> formatCode, Collection<Player> players) {
         if (players == null || players.size() == 0) {
             throw new IllegalArgumentException("Must have at least one player to have a tournament!");
         }
