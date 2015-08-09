@@ -3,6 +3,7 @@ package magic.data;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 public class Player implements Comparable<Player> {
 
@@ -19,8 +20,10 @@ public class Player implements Comparable<Player> {
     @JsonCreator
     public Player(@JsonProperty("name") String name,
                   @JsonProperty("id") int id) {
-        this.name = Preconditions.checkNotNull(name, "Name cannot be null!");
+        Preconditions.checkArgument(isValidName(name), "Invalid name: " + name);
         Preconditions.checkArgument(id > 0, "Player id must be greater than 0.");
+
+        this.name = name;
         this.id = id;
     }
 
@@ -69,5 +72,9 @@ public class Player implements Comparable<Player> {
             return 1;
         }
         return Integer.compare(id, o.id);
+    }
+
+    private static boolean isValidName(String name) {
+        return !(Strings.isNullOrEmpty(name) || name.equalsIgnoreCase("bye"));
     }
 }
