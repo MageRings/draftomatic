@@ -8,7 +8,7 @@
     <span id="startDraft" class="btn btn-success" ng-click="tournamentController.startTournament()"> Get this party started!</span>
   </div>
   <div ng-repeat="round in tournamentController.tournament.rounds.slice(0, tournamentController.tournament.currentRound+1)">
-    <match round="round" round-number="$index"></match>
+    <round round="round" tournament="tournamentController.tournament"></round>
     <div ng-if="$index == tournamentController.tournament.currentRound" ng-click="tournamentController.pairNextRound()">next round</div>
   </div>
   
