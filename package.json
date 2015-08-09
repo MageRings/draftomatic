@@ -9,6 +9,7 @@
   "author": "Some hacking group",
   "devDependencies": {
     "bluebird": "2.9.30",
+    "bower": "1.4.1",
     "chai": "3.0.0",
     "del": "1.2.0",
     "event-stream": "3.3.1",
