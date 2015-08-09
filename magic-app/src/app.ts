@@ -2,7 +2,7 @@ module Magic.App {
     export var magic = angular.module("magic-app", ["ui.router", "ui.bootstrap", "ui.autocomplete", "ui.bootstrap.typeahead"]);
     export var controllers = angular.module("magic.controllers", []);
     export var directives = angular.module("magic.directives", []);
-    export var services = angular.module("magic.services", []);
+    //export var services = angular.module("magic.services", []);
     function configureStates($stateProvider: ng.ui.IStateProvider, $urlRouterProvider: ng.ui.IUrlRouterProvider) {
         $urlRouterProvider.otherwise("/tournament");
 

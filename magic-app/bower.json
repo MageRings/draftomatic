@@ -4,6 +4,7 @@
   "main": [
     "build/src/utils.js",
     "build/src/app.js",
+    "build/src/tournamentService.js",
     "build/src/tournamentController.js",
     "build/src/match/matchController.js",
     "build/src/match/matchDirective.js",

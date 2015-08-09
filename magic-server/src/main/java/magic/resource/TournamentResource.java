@@ -39,7 +39,7 @@ public class TournamentResource {
             @QueryParam("rounds") Optional<Integer> rounds,
             @QueryParam("format") Format format,
             @QueryParam("code") Optional<String> formatCode,
-            Collection<Player> players) {
+            @QueryParam("players") Collection<Player> players) {
         return jsonifyString(manager.registerTournament(rounds, format, formatCode, players));
     }
 

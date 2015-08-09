@@ -49,98 +49,11 @@ module Magic.App.Tournament {
         public post<T>(methodName: string, params?: any): ng.IHttpPromise<T> {
             return this.$http.post(methodName, params);
         }
-        
-        public setTournamentResults() {
-            
+
+        public registerTournament(rounds: number, format: string, code: string, players: IPlayer[]) {
+            //debugger;
+            return this.post("/magic/tournament/register", {rounds: rounds, format: format, code: code, players: players});
         }
-        /*
-        public ng.I registerTournament() {
-            return this.post("/magic/register"
-        }
-    /*
-        public getUrlPrefix() {
-            return Utils.Rest.createUrlPrefix(DatasetService.API_PREFIX);
-        }
-    
-        public columnsView(datasetName: string) {
-            return this.restApi.get<IColumnsViewResponse>("columnsView/" + Utils.filePathToId(datasetName));
-        }
-    
-        public deleteArchetype(archetype: string, datasetName: string, columnName: string) {
-            return this.restApi.delete<void>("deleteArchetype/" + archetype + "/" + Utils.filePathToId(datasetName) + "/" + columnName);
-        }
-    
-        public filesView(datasetName: string, query: string) {
-            return this.restApi.get<IFilesView>("view/" + Utils.filePathToId(datasetName), { query: query });
-        }
-    
-        public getAdvanced(datasetName: string) {
-            return this.restApi.get<IAdvancedResponse>("advanced/" + Utils.filePathToId(datasetName));
-        }
-    
-        public getDependencyGraph(datasetName: string) {
-            return this.restApi.get<IDependencyGraphResponse>("graph/" + Utils.filePathToId(datasetName));
-        }
-    
-        public getHistory(datasetName: string) {
-            return this.restApi.get<IHistoryResponse>("history/" + Utils.filePathToId(datasetName)).success((response) => {
-                // https://jira.yojoe.local/browse/UDP-2375
-                response.metadatas.forEach((metadata) => {
-                    if (metadata.udpTransaction.timeCommitted.reference === undefined) {
-                        metadata.udpTransaction.timeCommitted = JSON.parse(<string><any>(metadata.udpTransaction.timeCommitted));
-                    }
-                });
-            });
-        }
-    
-        public getParents(datasetName: string, transactionId: string) {
-            return this.restApi.get<IDatasetNamesResponse>("parents/" + Utils.filePathToId(datasetName) + "/" + transactionId);
-        }
-    
-        public getRecomputeLogsRelativePaths(datasetName: string, transactionId: string) {
-            return this.restApi.get<string[]>("recomputeLogsRelativePaths/" + Utils.filePathToId(datasetName) + "/" + transactionId);
-        }
-    
-        public preview(datasetName: string) {
-            return this.restApi.get<IPreviewResponse>("preview/" + Utils.filePathToId(datasetName));
-        }
-    
-        public retrieveFile(datasetName: string, transactionId: string, type: string, filename: string, download: boolean) {
-            return this.restApi.get("retrieveFile/" + Utils.filePathToId(datasetName) + "/" + transactionId + "/" + type + "/" + filename, {
-                download: download
-            });
-        }
-    
-        public summary(datasetName: string) {
-            return this.restApi.get<ISummaryResponse>("summary/" + Utils.filePathToId(datasetName));
-        }
-    
-        public updateAttribute(datasetName: string, attributeName: string, attributeValues: string[]) {
-            return this.restApi.put<void>("updateAttribute", {
-                datasetName: Utils.filePathToId(datasetName),
-                attributeName: attributeName,
-                attributeValues: attributeValues
-            });
-        }
-    
-        public updateColumnMetadata(datasetName: string, columnName: string, metadata: IColumnMetadata) {
-            var processedMetadata: Dataset.IColumnMetadata = angular.copy(metadata);
-            delete processedMetadata.pendingDescription;
-            processedMetadata.archetypes = processedMetadata.archetypesPills.map((archetype) => archetype.value);
-            delete processedMetadata.archetypesPills;
-            return this.restApi.put<void>("updateColumnMetadata", {
-                datasetName: Utils.filePathToId(datasetName),
-                columnName: columnName, metadata: processedMetadata
-            });
-        }
-    
-        public updateDescription(datasetName: string, description: string): void {
-            this.restApi.put("updateDescription", {
-                datasetName: Utils.filePathToId(datasetName),
-                description: description
-            });
-        }*/
     }
-    services.service("tournament", TournamentService);
+    magic.service("tournament", TournamentService);
 }
-    //services.service("dataset", DatasetService);

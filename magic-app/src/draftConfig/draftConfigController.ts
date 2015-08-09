@@ -10,6 +10,7 @@ module Magic.App.DraftConfig {
 
     export interface IPlayer {
         name: string;
+        id: string;
     }
     
     export interface ISet {
@@ -57,11 +58,19 @@ module Magic.App.DraftConfig {
             ];
             this.formats = ["Draft", "Sealed", "Team Draft", "Constructed"];
             this.bestOfs = [1,3,5];
+            this.pendingPlayerName = "Mike";
+            this.addPendingPlayer();
+            this.pendingPlayerName = "asdf";
+            this.addPendingPlayer();
+            this.pendingPlayerName = "brian";
+            this.addPendingPlayer();
+            this.pendingPlayerName = "sam";
+            this.addPendingPlayer();
         }
 
         public addPendingPlayer() {
             if (this.pendingPlayerName.trim().length > 0) {
-                var newPlayer = { name: this.pendingPlayerName };
+                var newPlayer = { name: this.pendingPlayerName, id: this.pendingPlayerName };
                 this.$scope.tournamentModel.players.push(newPlayer);
                 this.pendingPlayerName = "";
             };

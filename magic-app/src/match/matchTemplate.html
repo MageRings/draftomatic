@@ -21,7 +21,10 @@
     <button ng-repeat="matchResult in matchController.getPossibleResults()" ng-click="matchController.setResult(matchResult)">{{matchResult.p1wins}}-{{matchResult.p2wins}}</button>
   </div>
   <div ng-if="matchController.matchWinner">
-    <input type="number" placeholder="draws" ng-model="match.draws">
+    <label>
+      Draws:
+      <input type="number" placeholder="draws" ng-model="match.draws">
+    </label>
   </div><!--
     <label><input type="checkbox">Drop {{match.player1}} after this round</label>
     <label><input type="checkbox">Drop {{match.player2}} after this round</label>
