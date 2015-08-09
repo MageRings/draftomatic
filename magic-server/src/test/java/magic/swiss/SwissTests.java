@@ -27,7 +27,7 @@ public class SwissTests {
                 .add(new Player("sam", 3))
                 .add(new Player("red hulk", 4))
                 .build();
-        SwissTournament manager = new SwissTournament(players);
+        SwissTournament manager = new SwissTournament(100, players);
         NavigableSet<Pairing> pairings = manager.getPairings(1);
         Assert.assertEquals(pairings.size(), 2);
         List<Result> results = Lists.newArrayList();
@@ -48,7 +48,7 @@ public class SwissTests {
                 .add(new Player("sam", 3))
                 .add(new Player("red hulk", 4))
                 .build();
-        SwissTournament manager = new SwissTournament(players);
+        SwissTournament manager = new SwissTournament(100, players);
         NavigableSet<Pairing> pairings = manager.getPairings(1);
         Assert.assertEquals(pairings.size(), 2);
         Set<Result> results = pairings.stream()

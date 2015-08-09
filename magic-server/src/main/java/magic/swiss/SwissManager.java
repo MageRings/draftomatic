@@ -22,11 +22,25 @@ public class SwissManager {
         while (runningTournaments.containsKey(uuid)) {
             uuid = UUID.randomUUID().toString();
         }
-        runningTournaments.put(uuid, new SwissTournament(players));
+        int actualRounds;
+        if (rounds.isPresent()) {
+            actualRounds = rounds.get();
+        } else {
+            actualRounds = getDefaultNumberOfRounds(players.size());
+        }
+        runningTournaments.put(uuid, new SwissTournament(actualRounds, players));
         return uuid;
     }
 
     public SwissTournament getTournament(String tournamentId) {
         return runningTournaments.get(tournamentId);
+    }
+    
+    private int getDefaultNumberOfRounds(int numberOfPlayers) {
+        int minNumberOfRounds = Integer.highestOneBit(numberOfPlayers);
+        if (Math.pow(2, minNumberOfRounds) == numberOfPlayers) {
+            return minNumberOfRounds;
+        }
+        return minNumberOfRounds + 1;
     }
 }
