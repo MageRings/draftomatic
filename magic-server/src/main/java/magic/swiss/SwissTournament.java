@@ -30,7 +30,7 @@ import magic.data.Player;
 import magic.data.Result;
 
 public class SwissTournament {
-
+    
     private final ConcurrentNavigableMap<Integer, Map<Player, Result>> overallResults = new ConcurrentSkipListMap<>();
     private final ConcurrentMap<Integer, Player> players = Maps.newConcurrentMap();
 
@@ -58,8 +58,7 @@ public class SwissTournament {
         Map<Player, Result> newResultEntry = Maps.newHashMap();
         for (Result r : thisRoundResults) {
             Result resultToRecord = r;
-            // player 1 must be the bye since the bye has the lowest id
-            if (r.getPairing().getPlayer1().equals(Player.BYE)) {
+            if (r.isBye()) {
                 resultToRecord = new Result(r.getPairing(), 0, 2, 0);
             }
             newResultEntry.put(resultToRecord.getPairing().getPlayer1(), resultToRecord);
@@ -84,28 +83,28 @@ public class SwissTournament {
     }
 
     private Map<Player, Integer> calculatePointsPerPlayer(Collection<Map<Player, Result>> results) {
-        if (results.isEmpty()) {
-            return players.values().stream().collect(Collectors.toMap(Function.identity(), player -> 0));
-        }
         return results.stream().collect(HashMap::new,
                 (map, resultPerPlayer) -> resultPerPlayer.entrySet().stream()
                         .forEach(entry -> map.put(entry.getKey(), entry.getValue().getPointsForPlayer(entry.getKey()))),
                 (finalMap, map) -> map.forEach((k, v) -> finalMap.merge(k, v, Integer::sum)));
     }
-    
+
     private Multimap<Player, Player> alreadyMatched(Collection<Map<Player, Result>> results) {
         return results.stream().collect(HashMultimap::create,
-                (map, resultPerPlayer) -> resultPerPlayer.entrySet().stream()
-                    .forEach(entry -> {
-                        Pairing pairing = entry.getValue().getPairing();
-                        map.put(entry.getKey(), pairing.getPlayer1().equals(entry.getKey()) ? pairing.getPlayer2() : pairing.getPlayer1());
-                    }),
-                (finalMap, map2) -> map2.asMap().forEach(finalMap::putAll));
+                (map, resultPerPlayer) -> resultPerPlayer.entrySet().stream().forEach(entry ->
+                {
+                    Player player = entry.getKey();
+                    map.put(player, entry.getValue().getPairing().getOpponent(player));
+                }),
+                (finalMap, map) -> map.asMap().forEach(finalMap::putAll));
     }
 
     private NavigableSet<Pairing> calculatePairings(Collection<Map<Player, Result>> results) {
         Multimap<Player, Player> alreadyMatched = alreadyMatched(results);
         Map<Player, Integer> pointsPerPlayer = calculatePointsPerPlayer(results);
+        if (pointsPerPlayer.isEmpty()) {
+            pointsPerPlayer = players.values().stream().collect(Collectors.toMap(Function.identity(), player -> 0));
+        }
         Multimap<Integer, Player> playersAtEachPointLevel = Multimaps.invertFrom(Multimaps.forMap(pointsPerPlayer),
                 HashMultimap.<Integer, Player> create());
         Solver solver = new Solver();
