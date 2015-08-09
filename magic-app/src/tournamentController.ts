@@ -19,6 +19,7 @@ module Magic.App.Tournament {
             var playerNames = _.pluck(this.tournamentModel.players, "name");
             this.tournament = new Swiss(Number(this.tournamentModel.bestOf), playerNames);
             this.tournament.pairInitial();
+            debugger;
         }
         
         public pairNextRound() {

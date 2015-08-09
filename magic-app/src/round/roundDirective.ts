@@ -8,9 +8,6 @@ module Magic.App.Round {
             tournament: "="
         };
         public templateUrl = "round/roundTemplate.html";
-        public link() {
-            debugger;
-        }
     }
 
     magic.directive("round", () => new RoundDirective());

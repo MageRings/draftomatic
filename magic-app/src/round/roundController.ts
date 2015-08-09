@@ -13,12 +13,10 @@ module Magic.App.Round {
         
         constructor($scope: IRoundScope) {
             this.$scope = $scope;
-            debugger;
             $scope.roundController = this;   
         }
         
         public pairNextRound() {
-            debugger;
             this.$scope.tournament.pairRound();
         }
     }
