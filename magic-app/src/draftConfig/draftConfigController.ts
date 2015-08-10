@@ -5,7 +5,6 @@ module Magic.App.DraftConfig {
         players: IPlayer[];
         format: string;
         set: string;
-        bestOf: string;
     }
 
     export interface IPlayer {
@@ -28,10 +27,10 @@ module Magic.App.DraftConfig {
 
     export class DraftConfigController implements IDraftConfigController {
         private $scope: IDraftConfigScope;
-        public bestOfs: number[];
         public formats: string[];
         public sets: ISet[];
         public pendingPlayerName: string;
+        private currentId: number;
         public static $inject = ["$scope", "$http"];
         constructor($scope: IDraftConfigScope, $http: ng.IHttpService) {
             $http.get<any>("api/player/list").then((response) => console.log(response));
@@ -56,12 +55,13 @@ module Magic.App.DraftConfig {
                 }
             ];
             this.formats = ["Draft", "Sealed", "Team Draft", "Constructed"];
-            this.bestOfs = [1,3,5];
+            this.currentId = 1;
         }
 
         public addPendingPlayer() {
             if (this.pendingPlayerName.trim().length > 0) {
-                var newPlayer = { name: this.pendingPlayerName };
+                var newPlayer = { name: this.pendingPlayerName, id: this.currentId };
+                this.currentId += 1;
                 this.$scope.tournamentModel.players.push(newPlayer);
                 this.pendingPlayerName = "";
             };

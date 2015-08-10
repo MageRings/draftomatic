@@ -5,21 +5,21 @@ module Magic.App.Tournament {
         public static $inject = ["$scope", "$http"];
         public tournamentModel: Magic.App.DraftConfig.ITournamentModel;
         public tournament: Swiss;
+        private http: ng.IHttpService;
         constructor($scope: ng.IScope, $http: ng.IHttpService) {
             this.tournamentModel = {
-                bestOf: "3",
                 format: "Draft",
                 numRounds: null,
                 players: [],
                 set: null
             };
+            this.http = $http;
         }
         
         public startTournament() {
             var playerNames = _.pluck(this.tournamentModel.players, "name");
-            this.tournament = new Swiss(Number(this.tournamentModel.bestOf), playerNames);
-            this.tournament.pairInitial();
-            debugger;
+            console.log(this.tournamentModel.players);
+            this.http.post<any>("api/tournament/register", this.tournamentModel.players).then((response) => console.log(response));
         }
         
         public pairNextRound() {

@@ -19,8 +19,7 @@ public class Player implements Comparable<Player> {
         this.name = "BYE";
     }
 
-    @JsonCreator
-    public Player(@JsonProperty("name") String name) {
+    public Player(String name) {
         this(Database.nextPlayerId(), name);
     }
 

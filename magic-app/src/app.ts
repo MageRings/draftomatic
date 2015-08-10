@@ -11,6 +11,12 @@ module Magic.App {
             templateUrl: "routes/tournament.html",
             controller: "tournamentController",
             controllerAs: "tournamentController"
+        })
+        .state("instance", {
+            url: "/tournament/{id}",
+            templateUrl: "round/roundTemplate.html",
+            controller: "roundController",
+            controllerAs: "roundController"
         });
     }
     magic.config(["$stateProvider", "$urlRouterProvider", configureStates]);

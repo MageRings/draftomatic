@@ -9,9 +9,12 @@ module Magic.App.Round {
     export class RoundController {
         private $scope: IRoundScope;
         public draws: number = 0;
-        public static $inject = ["$scope", "$http"];
+        public static $inject = ["$scope", "$stateParams"];
         
-        constructor($scope: IRoundScope) {
+        constructor($scope: IRoundScope, $stateParams: ng.ui.IStateParamsService) {
+            debugger
+            console.log($stateParams);
+            debugger
             this.$scope = $scope;
             $scope.roundController = this;   
         }
