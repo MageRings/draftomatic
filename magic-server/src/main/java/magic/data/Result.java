@@ -9,11 +9,7 @@ public class Result implements Comparable<Result> {
     public static final int POINTS_FOR_MATCH_LOSS = 0;
     public static final int POINTS_FOR_MATCH_DRAW = 1;
 
-    public static final int POINTS_FOR_GAME_WIN = 3;
-    public static final int POINTS_FOR_GAME_LOSS = 0;
-    public static final int POINTS_FOR_GAME_DRAW = 1;
-
-    public enum Outcome {
+    public static enum Outcome {
         P1_WIN,
         P1_LOSS,
         DRAW
@@ -49,19 +45,19 @@ public class Result implements Comparable<Result> {
     public int getDraws() {
         return draws;
     }
-    
+
     @JsonIgnore
     public boolean isBye() {
         // player 1 must be the bye since the bye has the lowest id
         return pairing.getPlayer1().equals(Player.BYE);
     }
-    
+
     @JsonIgnore
     public int getGamePointsForPlayer(Player player) {
         if (pairing.isPlayer1(player)) {
-            return p1Wins * POINTS_FOR_GAME_WIN + p2Wins * POINTS_FOR_GAME_LOSS + draws * POINTS_FOR_GAME_DRAW;
+            return p1Wins * POINTS_FOR_MATCH_WIN + p2Wins * POINTS_FOR_MATCH_LOSS + draws * POINTS_FOR_MATCH_DRAW;
         } else {
-            return p2Wins * POINTS_FOR_GAME_WIN + p1Wins * POINTS_FOR_GAME_LOSS + draws * POINTS_FOR_GAME_DRAW;
+            return p2Wins * POINTS_FOR_MATCH_WIN + p1Wins * POINTS_FOR_MATCH_LOSS + draws * POINTS_FOR_MATCH_DRAW;
         }
     }
 
@@ -94,7 +90,7 @@ public class Result implements Comparable<Result> {
         }
         return Outcome.DRAW;
     }
-    
+
     @JsonIgnore
     public int getNumberOfGames() {
         return p1Wins + p2Wins + draws;

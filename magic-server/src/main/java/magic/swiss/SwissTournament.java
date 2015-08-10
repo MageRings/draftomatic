@@ -29,14 +29,19 @@ import com.google.common.collect.Sets;
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
+import magic.data.TournamentStatus;
 
 public class SwissTournament {
-    
-    private final ConcurrentNavigableMap<Integer, Map<Player, Result>> overallResults = new ConcurrentSkipListMap<>();
-    private final ConcurrentMap<Integer, Player> players = Maps.newConcurrentMap();
-    private final int numberOfRounds;
 
-    public SwissTournament(int numberOfRounds, Collection<Player> players) {
+    private final String tournamentId;
+    private final ConcurrentNavigableMap<Integer, Map<Player, Result>> overallResults = new ConcurrentSkipListMap<>();
+    private final ConcurrentMap<Long, Player> players = Maps.newConcurrentMap();
+    private int currentRound = 1;
+    private final int numberOfRounds;
+    private boolean isComplete = false;
+
+    public SwissTournament(String tournamentId, int numberOfRounds, Collection<Player> players) {
+        this.tournamentId = tournamentId;
         for (Player p : players) {
             if (players.contains(p.getId())) {
                 throw new IllegalArgumentException("Two players have the same id: " + p.getId());
@@ -45,17 +50,36 @@ public class SwissTournament {
         }
         if (this.players.size() % 2 != 0) {
             // add in a bye
-            this.players.put(0, Player.BYE);
+            this.players.put(0L, Player.BYE);
         }
         this.numberOfRounds = numberOfRounds;
     }
 
-    public synchronized NavigableSet<Result> registerResults(int thisRound, Collection<Result> thisRoundResults) {
+    public TournamentStatus getStatus() {
+        return new TournamentStatus(currentRound, isComplete);
+    }
+
+    private int roundToUse(Optional<Integer> roundRequested) {
+        int round = currentRound;
+        if (roundRequested.isPresent()) {
+            round = roundRequested.get();
+        }
+        if (round > numberOfRounds) {
+            throw new IllegalArgumentException("This tournament only has " + numberOfRounds + " rounds!");
+        }
+        return round;
+    }
+
+    public synchronized NavigableSet<Result> registerResults(Optional<Integer> roundRequested, Collection<Result> thisRoundResults) {
+        if (isComplete) {
+            throw new IllegalArgumentException("This tournament is already compelete!");
+        }
+        int round = roundToUse(roundRequested);
         if (overallResults.size() == 0) {
-            if (thisRound != 1) {
+            if (round != 1) {
                 throw new IllegalArgumentException("Still waiting on results from the first round!");
             }
-        } else if (overallResults.lastKey() > thisRound) {
+        } else if (overallResults.lastKey() > round) {
             throw new IllegalArgumentException("We have already paired the next round!  Undo that round first");
         }
         Map<Player, Result> newResultEntry = Maps.newHashMap();
@@ -67,8 +91,16 @@ public class SwissTournament {
             newResultEntry.put(resultToRecord.getPairing().getPlayer1(), resultToRecord);
             newResultEntry.put(resultToRecord.getPairing().getPlayer2(), resultToRecord);
         }
-        overallResults.put(thisRound, newResultEntry);
-        return Sets.newTreeSet(overallResults.get(thisRound).values());
+        overallResults.put(round, newResultEntry);
+        // if we have received results for the current round then we can advance the tournament
+        if (round == currentRound) {
+            if (currentRound == numberOfRounds) {
+                isComplete = true;
+            } else {
+                currentRound += 1;
+            }
+        }
+        return Sets.newTreeSet(overallResults.get(round).values());
     }
 
     Constraint cannotPlayAgain(IntVar player1, IntVar player2) {
@@ -79,11 +111,9 @@ public class SwissTournament {
         return VariableFactory.bounded(String.valueOf(playerId), rangeStart, rangeEnd - 1, solver);
     }
 
-    public synchronized NavigableSet<Pairing> getPairings(int round) {
-        if (round > numberOfRounds) {
-            throw new IllegalArgumentException("This tournament only has " + numberOfRounds + " rounds!");
-        }
+    public synchronized NavigableSet<Pairing> getPairings(Optional<Integer> roundRequested) {
         // check for previous cached pairings
+        int round = roundToUse(roundRequested);
 
         return calculatePairings(overallResults.values(), round == numberOfRounds);
     }
@@ -115,7 +145,7 @@ public class SwissTournament {
                 HashMultimap.<Integer, Player> create());
         Optional<Map<Player, TieBreakers>> tieBreakers = Optional.empty();
         if (lastRound) {
-            tieBreakers = Optional.of(TieBreakers.getTieBreakers(results, pointsPerPlayer));
+            tieBreakers = Optional.of(TieBreakers.getTieBreakers(results, pointsPerPlayer, tournamentId));
         }
         Solver solver = new Solver();
         Map<Player, IntVar> playerVariables = createPlayerVariables(solver, playersAtEachPointLevel, tieBreakers);
@@ -180,5 +210,62 @@ public class SwissTournament {
             result.put(shuffledPlayers.get(i), createPlayerVariable(solver, i, rangeStart, rangeEnd));
         }
         return result;
+    }
+
+    public NavigableSet<TieBreakers> getTieBreakers(Optional<Integer> roundRequested) {
+        int round = roundToUse(roundRequested);
+        Collection<Map<Player, Result>> truncatedResults = overallResults.headMap(round, true).values();
+        Map<Player, Integer> pointsPerPlayer = calculatePointsPerPlayer(truncatedResults);
+        return Sets.newTreeSet(TieBreakers.getTieBreakers(truncatedResults, pointsPerPlayer, tournamentId).values());
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + numberOfRounds;
+        result = prime * result + ((overallResults == null) ? 0 : overallResults.hashCode());
+        result = prime * result + ((players == null) ? 0 : players.hashCode());
+        result = prime * result + ((tournamentId == null) ? 0 : tournamentId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        SwissTournament other = (SwissTournament) obj;
+        if (numberOfRounds != other.numberOfRounds) {
+            return false;
+        }
+        if (overallResults == null) {
+            if (other.overallResults != null) {
+                return false;
+            }
+        } else if (!overallResults.equals(other.overallResults)) {
+            return false;
+        }
+        if (players == null) {
+            if (other.players != null) {
+                return false;
+            }
+        } else if (!players.equals(other.players)) {
+            return false;
+        }
+        if (tournamentId == null) {
+            if (other.tournamentId != null) {
+                return false;
+            }
+        } else if (!tournamentId.equals(other.tournamentId)) {
+            return false;
+        }
+        return true;
     }
 }
