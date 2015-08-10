@@ -7,14 +7,14 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.Maps;
 
-import magic.data.Format;
+import magic.data.TournamentType;
 import magic.data.Player;
 
 public class SwissManager {
 
     ConcurrentMap<String, SwissTournament> runningTournaments = Maps.newConcurrentMap();
 
-    public String registerTournament(Optional<Integer> rounds, Optional<Format> format, Optional<String> formatCode, Collection<Player> players) {
+    public String registerTournament(Optional<Integer> rounds, Optional<TournamentType> format, Optional<String> formatCode, Collection<Player> players) {
         if (players == null || players.size() == 0) {
             throw new IllegalArgumentException("Must have at least one player to have a tournament!");
         }

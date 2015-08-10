@@ -6,17 +6,17 @@ import com.google.common.base.Optional;
 
 public class Tournament {
 
-    private final Format format;
+    private final TournamentType format;
     private final Optional<String> formatCode;
 
     @JsonCreator
-    public Tournament(@JsonProperty("format") Format format,
+    public Tournament(@JsonProperty("format") TournamentType format,
                       @JsonProperty("code") Optional<String> formatCode) {
         this.format = format;
         this.formatCode = formatCode;
     }
 
-    public Format getFormat() {
+    public TournamentType getFormat() {
         return format;
     }
 

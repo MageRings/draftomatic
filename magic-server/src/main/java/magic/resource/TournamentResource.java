@@ -12,11 +12,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
-import magic.data.Format;
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
+import magic.data.TournamentStatus;
+import magic.data.TournamentType;
 import magic.swiss.SwissManager;
+import magic.swiss.TieBreakers;
 
 @Path("tournament")
 public class TournamentResource {
@@ -36,7 +38,7 @@ public class TournamentResource {
     @Produces("application/json")
     public String registerTournament(
             @QueryParam("rounds") Integer rounds,
-            @QueryParam("format") Format format,
+            @QueryParam("format") TournamentType format,
             @QueryParam("code") String formatCode,
             Collection<Player> players) {
         return jsonifyString(manager.registerTournament(Optional.ofNullable(rounds), Optional.ofNullable(format), Optional.ofNullable(formatCode), players));
@@ -47,17 +49,33 @@ public class TournamentResource {
     @Produces("application/json")
     public NavigableSet<Pairing> getPairings(
                                              @PathParam("tournamentId") String tournamentId,
-                                             @PathParam("round") int round) {
-        return manager.getTournament(tournamentId).getPairings(round);
+                                             @QueryParam("round") Integer round) {
+        return manager.getTournament(tournamentId).getPairings(Optional.ofNullable(round));
     }
 
     @PUT
-    @Path("/results/{tournamentId}/{round}")
+    @Path("/results/{tournamentId}")
     @Produces("application/json")
-    public NavigableSet<Result> registerResults(
-                                                @PathParam("tournamentId") String tournamentId,
-                                                @PathParam("round") int round,
+    public NavigableSet<Result> registerResults(@PathParam("tournamentId") String tournamentId,
+                                                @QueryParam("round") Integer round,
                                                 Collection<Result> results) {
-        return manager.getTournament(tournamentId).registerResults(round, results);
+        return manager.getTournament(tournamentId).registerResults(Optional.ofNullable(round), results);
     }
+
+    @GET
+    @Path("/standings/{tournamentId}")
+    @Produces("application/json")
+    public NavigableSet<TieBreakers> getStandings(
+                                                @PathParam("tournamentId") String tournamentId,
+                                                @PathParam("round") int round) {
+        return manager.getTournament(tournamentId).getTieBreakers(Optional.ofNullable(round));
+    }
+
+    @GET
+    @Path("/status/{tournamentId}")
+    @Produces("application/json")
+    public TournamentStatus getTournamentStatus(@PathParam("tournamentId") String tournamentId) {
+        return manager.getTournament(tournamentId).getStatus();
+    }
+
 }

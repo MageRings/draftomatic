@@ -6,12 +6,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Deck {
     private final String colors;
     private final String archetype;
-    private final Format format;
+    private final TournamentType format;
 
     @JsonCreator
     public Deck(@JsonProperty("colors") String colors,
                 @JsonProperty("archetype") String archetype,
-                @JsonProperty("format") Format format) {
+                @JsonProperty("format") TournamentType format) {
         this.colors = colors;
         this.archetype = archetype;
         this.format = format;
@@ -25,7 +25,7 @@ public class Deck {
         return archetype;
     }
 
-    public Format getFormat() {
+    public TournamentType getFormat() {
         return format;
     }
 }
