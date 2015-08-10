@@ -67,7 +67,7 @@ public class TournamentResource {
     @Produces("application/json")
     public NavigableSet<TieBreakers> getStandings(
                                                 @PathParam("tournamentId") String tournamentId,
-                                                @PathParam("round") int round) {
+                                                @QueryParam("round") Integer round) {
         return manager.getTournament(tournamentId).getTieBreakers(Optional.ofNullable(round));
     }
 
