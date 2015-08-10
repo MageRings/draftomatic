@@ -27,7 +27,12 @@ module Magic.App.Tournament {
         draws: number;        
     }
     
-    export class TournamentService {
+    export interface ITournamentService {
+        registerTournament(rounds: number, format: string, code: string, players: IPlayer[]): ng.IHttpPromise<string>;
+        getPairings(tournamentId: string, round: number): ng.IHttpPromise<any>;
+    }
+    
+    export class TournamentService implements ITournamentService {
     
         private $q: ng.IQService;
         private $http: ng.IHttpService
@@ -46,13 +51,16 @@ module Magic.App.Tournament {
             }
         }
     
-        public post<T>(methodName: string, params?: any): ng.IHttpPromise<T> {
-            return this.$http.post(methodName, params);
+        public post<T>(methodName: string, data: any, params?: any): ng.IHttpPromise<T> {
+            return this.$http.post(methodName, data, params);
         }
 
         public registerTournament(rounds: number, format: string, code: string, players: IPlayer[]) {
-            //debugger;
-            return this.post("/magic/tournament/register", {rounds: rounds, format: format, code: code, players: players});
+            return this.post("/magic/api/tournament/register", players, {rounds: rounds, format: format, code: code, players: players});
+        }
+
+        public getPairings(tournamentId: string, round: number) {
+            return this.get("/magic/api/tournament/pairings", {tournamentId: tournamentId, round: round});       
         }
     }
     magic.service("tournament", TournamentService);

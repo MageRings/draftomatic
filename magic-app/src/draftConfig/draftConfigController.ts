@@ -10,7 +10,7 @@ module Magic.App.DraftConfig {
 
     export interface IPlayer {
         name: string;
-        id: string;
+        id: number;
     }
     
     export interface ISet {
@@ -70,10 +70,23 @@ module Magic.App.DraftConfig {
 
         public addPendingPlayer() {
             if (this.pendingPlayerName.trim().length > 0) {
-                var newPlayer = { name: this.pendingPlayerName, id: this.pendingPlayerName };
+                
+                var newPlayer = { name: this.pendingPlayerName, id: this.hash(this.pendingPlayerName) };
                 this.$scope.tournamentModel.players.push(newPlayer);
                 this.pendingPlayerName = "";
             };
+        }
+
+        private hash(name: string) {
+            var hash = 0;
+            if (name.length) {
+                for (var i = 0; i < name.length; i++) {
+                    var character = name.charCodeAt(i);
+                    hash = ((hash<<5)-hash)+character;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+            }
+            return hash;
         }
 
         public removePlayer(player: IPlayer) {

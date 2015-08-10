@@ -39,12 +39,12 @@ public class TournamentResource {
             @QueryParam("rounds") Optional<Integer> rounds,
             @QueryParam("format") Format format,
             @QueryParam("code") Optional<String> formatCode,
-            @QueryParam("players") Collection<Player> players) {
+            Collection<Player> players) {
         return jsonifyString(manager.registerTournament(rounds, format, formatCode, players));
     }
 
     @GET
-    @Path("/pairings/{tournamentId}")
+    @Path("/pairings/{tournamentId}/{round}")
     @Produces("application/json")
     public NavigableSet<Pairing> getPairings(
                                              @PathParam("tournamentId") String tournamentId,

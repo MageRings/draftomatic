@@ -5,7 +5,7 @@ module Magic.App.Tournament {
         public static $inject = ["$scope", "$http", "tournament"];
         public tournament: Swiss;
         public tournamentModel: Magic.App.DraftConfig.ITournamentModel;
-        public tournamentService: Tournament.TournamentService;
+        public tournamentService: Tournament.ITournamentService;
         constructor($scope: ng.IScope, $http: ng.IHttpService, tournamentService: TournamentService) {
             this.tournamentModel = {
                 bestOf: "3",
@@ -20,8 +20,10 @@ module Magic.App.Tournament {
         public startTournament() {
             debugger;
             this.tournamentService.registerTournament(this.tournamentModel.numRounds, this.tournamentModel.format, "formateCode", this.tournamentModel.players).then((data) => {
-                debugger;
+                return this.tournamentService.getPairings(data.data, 0);
             }).catch((error) => {
+                debugger;
+            }).then((data) => {
                 debugger;
             });
             //this.tournament = new Swiss(Number(this.tournamentModel.bestOf), playerNames);
