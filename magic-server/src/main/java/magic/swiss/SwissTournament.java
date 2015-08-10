@@ -35,7 +35,7 @@ public class SwissTournament {
 
     private final String tournamentId;
     private final ConcurrentNavigableMap<Integer, Map<Player, Result>> overallResults = new ConcurrentSkipListMap<>();
-    private final ConcurrentMap<Integer, Player> players = Maps.newConcurrentMap();
+    private final ConcurrentMap<Long, Player> players = Maps.newConcurrentMap();
     private int currentRound = 1;
     private final int numberOfRounds;
     private boolean isComplete = false;
@@ -50,7 +50,7 @@ public class SwissTournament {
         }
         if (this.players.size() % 2 != 0) {
             // add in a bye
-            this.players.put(0, Player.BYE);
+            this.players.put(0L, Player.BYE);
         }
         this.numberOfRounds = numberOfRounds;
     }

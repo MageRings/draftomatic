@@ -3,15 +3,24 @@ package magic.data;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import magic.data.database.Database;
+
 public class Deck {
 
-    private final int id;
+    private final long id;
     private final String colors;
     private final String archetype;
     private final TournamentType format;
 
     @JsonCreator
-    public Deck(@JsonProperty("id") int id,
+    public Deck(@JsonProperty("colors") String colors,
+                @JsonProperty("archetype") String archetype,
+                @JsonProperty("format") TournamentType format) {
+        this(Database.nextDeckId(), colors, archetype, format);
+    }
+
+    @JsonCreator
+    public Deck(@JsonProperty("id") long id,
                 @JsonProperty("colors") String colors,
                 @JsonProperty("archetype") String archetype,
                 @JsonProperty("format") TournamentType format) {
@@ -21,7 +30,7 @@ public class Deck {
         this.format = format;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
@@ -41,7 +50,7 @@ public class Deck {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + id;
+        result = prime * result + (int) (id ^ (id >>> 32));
         return result;
     }
 
@@ -61,6 +70,11 @@ public class Deck {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Deck [id=" + id + ", colors=" + colors + ", archetype=" + archetype + ", format=" + format + "]";
     }
 
 }

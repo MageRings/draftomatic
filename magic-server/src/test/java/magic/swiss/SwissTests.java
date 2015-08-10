@@ -23,10 +23,10 @@ public class SwissTests {
     public void testAlreadyPaired() {
         List<Player> players =
                 new ImmutableList.Builder<Player>()
-                .add(new Player("jeff", 1))
-                .add(new Player("kimberly", 2))
-                .add(new Player("sam", 3))
-                .add(new Player("red hulk", 4))
+                .add(new Player(1, "jeff"))
+                .add(new Player(2, "kimberly"))
+                .add(new Player(3, "sam"))
+                .add(new Player(4, "red hulk"))
                 .build();
         SwissTournament manager = new SwissTournament("id", 100, players);
         NavigableSet<Pairing> pairings = manager.getPairings(Optional.of(1));
@@ -45,9 +45,9 @@ public class SwissTests {
     @Test
     public void testByes() {
         List<Player> players = new ImmutableList.Builder<Player>()
-                .add(new Player("kimberly", 2))
-                .add(new Player("sam", 3))
-                .add(new Player("red hulk", 4))
+                .add(new Player(2, "kimberly"))
+                .add(new Player(3, "sam"))
+                .add(new Player(4, "red hulk"))
                 .build();
         SwissTournament manager = new SwissTournament("id", 100, players);
         NavigableSet<Pairing> pairings = manager.getPairings(Optional.of(1));

@@ -5,20 +5,22 @@ import java.util.Optional;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import magic.data.database.Database;
+
 public class Tournament {
 
-    private final int id;
+    private final long id;
     private final TournamentType format;
     private final Optional<String> formatCode;
 
     @JsonCreator
     public Tournament(@JsonProperty("format") TournamentType format,
                       @JsonProperty("code") Optional<String> formatCode) {
-        this(0, format, formatCode);
+        this(Database.nextTournamentId(), format, formatCode);
     }
 
     @JsonCreator
-    public Tournament(@JsonProperty("id") int id,
+    public Tournament(@JsonProperty("id") long id,
                       @JsonProperty("format") TournamentType format,
                       @JsonProperty("code") Optional<String> formatCode) {
         this.id = id;
@@ -26,7 +28,7 @@ public class Tournament {
         this.formatCode = formatCode;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
@@ -42,7 +44,7 @@ public class Tournament {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + id;
+        result = prime * result + (int) (id ^ (id >>> 32));
         return result;
     }
 
@@ -62,6 +64,11 @@ public class Tournament {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Tournament [id=" + id + ", format=" + format + ", formatCode=" + formatCode + "]";
     }
 
 }

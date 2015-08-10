@@ -12,6 +12,17 @@ public class DatabaseConstants {
     public static final int PLAYERS_ID = 0;
     public static final int PLAYERS_NAME = 1;
 
+    public static final int DECKS_ID = 0;
+    public static final int DECKS_FORMAT = 1;
+    public static final int DECKS_COLORS = 2;
+    public static final int DECKS_ARCHETYPE = 3;
+
+    public static final int MATCHES_ID = 0;
+
+    public static final int TOURNAMENTS_ID = 0;
+    public static final int TOURNAMENTS_FORMAT = 1;
+    public static final int TOURNAMENTS_CODE = 2;
+
     private DatabaseConstants() {
         // utils
     }
