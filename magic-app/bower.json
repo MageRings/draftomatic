@@ -7,7 +7,7 @@
     "build/src/tournamentController.js",
     "build/src/match/matchController.js",
     "build/src/match/matchDirective.js",
-    "build/src/round/roundController.js",
+    "build/src/round/roundsController.js",
     "build/src/round/roundDirective.js",
     "build/src/draftConfig/draftConfigController.js",
     "build/src/draftConfig/draftConfigDirective.js",

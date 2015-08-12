@@ -29,11 +29,13 @@ import com.google.common.collect.Sets;
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
+import magic.data.Round;
 import magic.data.TournamentStatus;
 
 public class SwissTournament {
 
     private final String tournamentId;
+    private final ConcurrentNavigableMap<Integer, NavigableSet<Pairing>> overallPairings = new ConcurrentSkipListMap<>();
     private final ConcurrentNavigableMap<Integer, Map<Player, Result>> overallResults = new ConcurrentSkipListMap<>();
     private final ConcurrentMap<Long, Player> players = Maps.newConcurrentMap();
     private int currentRound = 1;
@@ -56,7 +58,18 @@ public class SwissTournament {
     }
 
     public TournamentStatus getStatus() {
-        return new TournamentStatus(currentRound, isComplete);
+        NavigableSet<Round> rounds = Sets.newTreeSet();
+        for (int i = 1; i <= currentRound; i++) {
+            NavigableSet<Result> results = Sets.newTreeSet(overallResults.getOrDefault(i, Maps.newHashMap()).values());
+            NavigableSet<Pairing> pairings;
+            if (!results.isEmpty()) {
+                pairings = Sets.newTreeSet(results.stream().map(result -> result.getPairing()).collect(Collectors.toSet()));
+            } else {
+                pairings = getPairings(Optional.of(i));
+            }
+            rounds.add(new Round(i, pairings, results, !results.isEmpty()));
+        }
+        return new TournamentStatus(currentRound, isComplete, rounds);
     }
 
     private int roundToUse(Optional<Integer> roundRequested) {
@@ -112,10 +125,14 @@ public class SwissTournament {
     }
 
     public synchronized NavigableSet<Pairing> getPairings(Optional<Integer> roundRequested) {
-        // check for previous cached pairings
         int round = roundToUse(roundRequested);
-
-        return calculatePairings(overallResults.values(), round == numberOfRounds);
+        NavigableSet<Pairing> pairings = overallPairings.getOrDefault(round, null);
+        if (pairings != null) {
+            return pairings;
+        }
+        pairings = calculatePairings(overallResults.values(), round == numberOfRounds);
+        overallPairings.put(round, pairings);
+        return pairings;
     }
 
     private Map<Player, Integer> calculatePointsPerPlayer(Collection<Map<Player, Result>> results) {

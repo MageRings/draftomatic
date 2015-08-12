@@ -1,11 +1,8 @@
 <div>
-  <span class="round-label label label-default">Round {{roundNumber+1}}</span>
+  <span class="round-label label label-default">Round {{round.number}}</span>
   <accordion close-others="false">
-    <accordion-group ng-repeat="match in round" heading="{{match.player1 + ' vs ' + match.player2}}">
-      <match match="match" tournament="tournament"></match>
-      
-      <button ng-repeat="possibleMatchResult in tournament.possibleMatchResults" ng-click="setMatchResult(possibleMatchResult, draws, match)">{{possibleMatchResult.p1wins}}-{{possibleMatchResult.p2wins}}</button>
+    <accordion-group ng-repeat="pairing in round.pairings" heading="{{pairing.player1.name + ' vs ' + pairing.player2.name}}">
+      <match match="pairing"></match>
     </accordion-group>
   </accordion>
-  <button ng-click="roundController.pairNextRound()">Pair next round!</button>
 </div>

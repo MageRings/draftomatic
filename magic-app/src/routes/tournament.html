@@ -1,15 +1,4 @@
-<div class="container">
-  <div class="jumbotron">
-    <h1> DraftTracker </h1>
-    <p> Track drafts, go wild! Featuring DJ Maro and the Mage-Rings.</p>
-  </div>
-  <draft-config tournament-model="tournamentController.tournamentModel"></draft-config>
-  <div>
-    <span id="startDraft" class="btn btn-success" ng-click="tournamentController.startTournament()"> Get this party started!</span>
-  </div>
-  <div ng-repeat="round in tournamentController.tournament.rounds.slice(0, tournamentController.tournament.currentRound+1)">
-    <round round="round" tournament="tournamentController.tournament"></round>
-    <div ng-if="$index == tournamentController.tournament.currentRound" ng-click="tournamentController.pairNextRound()">next round</div>
-  </div>
-  
+<draft-config tournament-model="tournamentController.tournamentModel"></draft-config>
+<div>
+  <span id="startDraft" class="btn btn-success" ng-click="tournamentController.startTournament()"> Get this party started!</span>
 </div>

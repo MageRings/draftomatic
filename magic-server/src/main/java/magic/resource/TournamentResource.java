@@ -12,7 +12,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
-import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
 import magic.data.TournamentStatus;
@@ -42,15 +41,6 @@ public class TournamentResource {
             @QueryParam("code") String formatCode,
             Collection<Player> players) {
         return jsonifyString(manager.registerTournament(Optional.ofNullable(rounds), Optional.ofNullable(format), Optional.ofNullable(formatCode), players));
-    }
-
-    @GET
-    @Path("/pairings/{tournamentId}")
-    @Produces("application/json")
-    public NavigableSet<Pairing> getPairings(
-                                             @PathParam("tournamentId") String tournamentId,
-                                             @QueryParam("round") Integer round) {
-        return manager.getTournament(tournamentId).getPairings(Optional.ofNullable(round));
     }
 
     @PUT
