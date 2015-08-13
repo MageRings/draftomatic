@@ -16,8 +16,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.io.BaseEncoding;
 
+import magic.data.Match;
 import magic.data.Player;
-import magic.data.Result;
 
 public class TieBreakers implements Comparable<TieBreakers> {
 
@@ -26,20 +26,20 @@ public class TieBreakers implements Comparable<TieBreakers> {
     //"game point" are more correct
     private static final double MINIMUM_MATCH_WIN_PERCENTAGE = .33;
     private static final double MINIMUM_GAME_WIN_PERCENTAGE = MINIMUM_MATCH_WIN_PERCENTAGE;
-    
+
     //for the unlikely case that a player plays no games
     private static final double DEFAULT_MATCH_WIN_PERCENTAGE = 0;
     private static final double DEFAULT_GAME_WIN_PERCENTAGE = DEFAULT_MATCH_WIN_PERCENTAGE;
-    
+
     private final Player player;
     private final int matchPoints;
     private final double opponentMatchWinPercentage;
     private final double gameWinPercentage;
     private final double opponentGameWinPercentage;
     private final byte[] finalTiebreaker;
-    
-    public static Map<Player, TieBreakers> getTieBreakers(Collection<Map<Player, Result>> results, Map<Player, Integer> pointsPerPlayer, String tournamentId) {
-        Map<Player, Collection<Result>> flatResults = getFlatResults(results);
+
+    public static Map<Player, TieBreakers> getTieBreakers(Collection<Map<Player, Match>> results, Map<Player, Integer> pointsPerPlayer, String tournamentId) {
+        Map<Player, Collection<Match>> flatResults = getFlatResults(results);
         Map<Player, Double> opponentMatchWinPercentages = calculateOpponentWinPercentages(flatResults,
                 calculatePlayerMatchWinPercentages(flatResults, pointsPerPlayer),
                 DEFAULT_MATCH_WIN_PERCENTAGE);
@@ -47,7 +47,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
         Map<Player, Double> opponentGameWinPercentages = calculateOpponentWinPercentages(flatResults,
                 playerGameWinPercentages,
                 DEFAULT_GAME_WIN_PERCENTAGE);
-        
+
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-256");
@@ -64,7 +64,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
                         md.digest((tournamentId + player.getId()).getBytes(StandardCharsets.UTF_8))
                 )));
     }
-    
+
     public Player getPlayer() {
         return player;
     }
@@ -77,7 +77,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
             return matchPoints - other.matchPoints;
         }
         if (opponentMatchWinPercentage != other.opponentMatchWinPercentage) {
-            return opponentMatchWinPercentage > other.opponentMatchWinPercentage ? GREATER : LESS; 
+            return opponentMatchWinPercentage > other.opponentMatchWinPercentage ? GREATER : LESS;
         }
         if (gameWinPercentage != other.gameWinPercentage) {
             return gameWinPercentage > other.gameWinPercentage ? GREATER : LESS;
@@ -87,7 +87,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
         }
         return BaseEncoding.base32Hex().encode(finalTiebreaker).compareTo(BaseEncoding.base32Hex().encode(other.finalTiebreaker));
     }
-    
+
     @VisibleForTesting
     /* package */ TieBreakers(Player player, int matchPoints, double opponentMatchWinPercentage, double gameWinPercentage,
             double opponentGameWinPercentage, byte[] finalTiebreaker) {
@@ -98,16 +98,16 @@ public class TieBreakers implements Comparable<TieBreakers> {
         this.opponentGameWinPercentage = opponentGameWinPercentage;
         this.finalTiebreaker = finalTiebreaker;
     }
-    
-    private static Map<Player, Collection<Result>> getFlatResults(Collection<Map<Player, Result>> results) {
+
+    private static Map<Player, Collection<Match>> getFlatResults(Collection<Map<Player, Match>> results) {
         return results.stream().collect(
-                HashMultimap::<Player, Result>create,
+                HashMultimap::<Player, Match>create,
                 (map, resultsPerPlayer) -> map.putAll(Multimaps.forMap(resultsPerPlayer)),
                 (finalMap, map) -> finalMap.putAll(map)).asMap();
     }
-    
+
     @VisibleForTesting
-    /* package */ static Map<Player, Double> calculatePlayerMatchWinPercentages(Map<Player, Collection<Result>> flatResults,
+    /* package */ static Map<Player, Double> calculatePlayerMatchWinPercentages(Map<Player, Collection<Match>> flatResults,
             Map<Player, Integer> pointsPerPlayer) {
         return flatResults.entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> {
             if (entry.getValue().size() == 0) {
@@ -118,10 +118,10 @@ public class TieBreakers implements Comparable<TieBreakers> {
     }
 
     @VisibleForTesting
-    /* package */ static Map<Player, Double> calculatePlayerGameWinPercentages(Map<Player, Collection<Result>> flatResults) {
+    /* package */ static Map<Player, Double> calculatePlayerGameWinPercentages(Map<Player, Collection<Match>> flatResults) {
         return flatResults.entrySet().stream().collect(Collectors.toMap(Entry::getKey, resultsPerPlayer -> {
             Player player = resultsPerPlayer.getKey();
-            int games = resultsPerPlayer.getValue().stream().reduce(0, (sum, result) -> sum += result.getNumberOfGames(), Integer::sum);
+            int games = resultsPerPlayer.getValue().stream().reduce(0, (sum, result) -> sum += result.getResult().getNumberOfGames(), Integer::sum);
             if (games == 0) {
                 return MINIMUM_GAME_WIN_PERCENTAGE;
             }
@@ -129,14 +129,14 @@ public class TieBreakers implements Comparable<TieBreakers> {
             return Math.max(MINIMUM_GAME_WIN_PERCENTAGE, wins / (games * MAX_POINTS_PER_GAME));
         }));
     }
-    
-    private static Predicate<Result> distinctByOpponent(Player player) {
-        ConcurrentSkipListSet<Player> seen = new ConcurrentSkipListSet<>(); 
+
+    private static Predicate<Match> distinctByOpponent(Player player) {
+        ConcurrentSkipListSet<Player> seen = new ConcurrentSkipListSet<>();
         return r -> seen.add(r.getPairing().getOpponent(player));
     }
-    
+
     @VisibleForTesting
-    /* package */ static  Map<Player, Double> calculateOpponentWinPercentages(Map<Player, Collection<Result>> flatResults,
+    /* package */ static  Map<Player, Double> calculateOpponentWinPercentages(Map<Player, Collection<Match>> flatResults,
             Map<Player, Double> playerWinPercentage, Double defaultResult) {
         return flatResults.entrySet().stream().collect(Collectors.toMap(Entry::getKey, resultsPerPlayer -> {
             if (resultsPerPlayer.getValue().size() == 0) {
@@ -145,7 +145,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
             Player player = resultsPerPlayer.getKey();
             return resultsPerPlayer.getValue().stream()
                     .filter(distinctByOpponent(player))
-                    .filter(r -> !r.isBye())
+                    .filter(r -> !r.getPairing().isBye())
                     .collect(Collectors.averagingDouble(result -> playerWinPercentage.get(result.getPairing().getOpponent(player))));
         }));
     }

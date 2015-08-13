@@ -12,8 +12,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
+import magic.data.Match;
 import magic.data.Player;
-import magic.data.Result;
+import magic.data.Round;
 import magic.data.TournamentStatus;
 import magic.data.TournamentType;
 import magic.swiss.SwissManager;
@@ -46,9 +47,9 @@ public class TournamentResource {
     @PUT
     @Path("/results/{tournamentId}")
     @Produces("application/json")
-    public NavigableSet<Result> registerResults(@PathParam("tournamentId") String tournamentId,
+    public Round registerResults(@PathParam("tournamentId") String tournamentId,
                                                 @QueryParam("round") Integer round,
-                                                Collection<Result> results) {
+                                                Collection<Match> results) {
         return manager.getTournament(tournamentId).registerResults(Optional.ofNullable(round), results);
     }
 

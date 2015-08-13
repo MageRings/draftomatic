@@ -27,10 +27,6 @@ module Magic.App.Tournament {
                 this.state.go("instance", {id: encodeURI(tournamentId)});
             });
         }
-        
-        public pairNextRound() {
-            this.tournament.pairRound();
-        }
     }
 
     magic.controller("tournamentController", TournamentController);

@@ -7,32 +7,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Round implements Comparable<Round> {
 
     private final int number;
-    private final NavigableSet<Pairing> pairings;
-    private final NavigableSet<Result> results;
-    private final boolean complete;
+    private final NavigableSet<Match> matches;
 
     public Round(
             @JsonProperty("number") int number,
-            @JsonProperty("pairings") NavigableSet<Pairing> pairings,
-            @JsonProperty("results") NavigableSet<Result> results,
-            @JsonProperty("complete") boolean complete) {
+            @JsonProperty("matches") NavigableSet<Match> matches) {
         this.number = number;
-        this.pairings = pairings;
-        this.results = results;
-        this.complete = complete;
+        this.matches = matches;
     }
 
     public int getNumber() {
         return number;
     }
-    public NavigableSet<Pairing> getPairings() {
-        return pairings;
-    }
-    public NavigableSet<Result> getResults() {
-        return results;
-    }
-    public boolean isComplete() {
-        return complete;
+    public NavigableSet<Match> getMatches() {
+        return matches;
     }
 
     @Override
@@ -44,10 +32,8 @@ public class Round implements Comparable<Round> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (complete ? 1231 : 1237);
         result = prime * result + number;
-        result = prime * result + ((pairings == null) ? 0 : pairings.hashCode());
-        result = prime * result + ((results == null) ? 0 : results.hashCode());
+        result = prime * result + ((matches == null) ? 0 : matches.hashCode());
         return result;
     }
 
@@ -63,24 +49,14 @@ public class Round implements Comparable<Round> {
             return false;
         }
         Round other = (Round) obj;
-        if (complete != other.complete) {
-            return false;
-        }
         if (number != other.number) {
             return false;
         }
-        if (pairings == null) {
-            if (other.pairings != null) {
+        if (matches == null) {
+            if (other.matches != null) {
                 return false;
             }
-        } else if (!pairings.equals(other.pairings)) {
-            return false;
-        }
-        if (results == null) {
-            if (other.results != null) {
-                return false;
-            }
-        } else if (!results.equals(other.results)) {
+        } else if (!matches.equals(other.matches)) {
             return false;
         }
         return true;

@@ -1,8 +1,8 @@
 <div>
   <span class="round-label label label-default">Round {{round.number}}</span>
   <accordion close-others="false">
-    <accordion-group ng-repeat="pairing in round.pairings" heading="{{pairing.player1.name + ' vs ' + pairing.player2.name}}">
-      <match match="pairing"></match>
+    <accordion-group ng-repeat="match in round.matches" heading="{{match.pairing.player1.name + ' vs ' + match.pairing.player2.name}}">
+      <match match="match"></match>
     </accordion-group>
   </accordion>
 </div>

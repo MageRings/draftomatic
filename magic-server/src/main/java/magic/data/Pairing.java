@@ -32,6 +32,11 @@ public class Pairing implements Comparable<Pairing> {
     }
 
     @JsonIgnore
+    public boolean isBye() {
+        return player1.equals(Player.BYE);
+    }
+
+    @JsonIgnore
     public boolean isPlayer1(Player player) {
         if (player.equals(player1)) {
             return true;
@@ -41,7 +46,7 @@ public class Pairing implements Comparable<Pairing> {
         }
         throw new IllegalArgumentException("Player " + player + " was not involved in this pairing!");
     }
-    
+
     @JsonIgnore
     public Player getOpponent(Player player) {
         if (isPlayer1(player)) {

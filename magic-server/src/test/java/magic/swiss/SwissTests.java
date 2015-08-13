@@ -12,7 +12,7 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
-import jersey.repackaged.com.google.common.collect.Lists;
+import magic.data.Match;
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
@@ -29,13 +29,10 @@ public class SwissTests {
                 .add(new Player(4, "red hulk"))
                 .build();
         SwissTournament manager = new SwissTournament("id", 100, players);
-        NavigableSet<Pairing> pairings = manager.getPairings(Optional.of(1));
-        Assert.assertEquals(pairings.size(), 2);
-        List<Result> results = Lists.newArrayList();
-        for (Pairing p : pairings) {
-            results.add(new Result(p, 2, 0, 0));
-        }
-        manager.registerResults(Optional.of(1), results);
+        NavigableSet<Match> matches = manager.getStatus().getRounds().last().getMatches();
+        Assert.assertEquals(matches.size(), 2);
+        matches = Sets.newTreeSet(matches.stream().map(match -> new Match(match.getPairing(), new Result(2, 0, 0))).collect(Collectors.toSet()));
+        manager.registerResults(Optional.of(1), matches);
         NavigableSet<Pairing> expected = Sets.newTreeSet();
         expected.add(new Pairing(pairings.first().getPlayer1(), pairings.last().getPlayer1(), 6));
         expected.add(new Pairing(pairings.first().getPlayer2(), pairings.last().getPlayer2(), 0));
