@@ -132,7 +132,7 @@ public class SwissTournament {
 
     private synchronized NavigableSet<Match> getPairings() {
         NavigableSet<Pairing> pairings = calculatePairings(overallResults.values(), currentRound == numberOfRounds);
-        NavigableSet<Match> matches = Sets.newTreeSet(pairings.stream().map(pairing -> new Match(pairing, new Result(0, 0, 0))).collect(Collectors.toSet()));
+        NavigableSet<Match> matches = Sets.newTreeSet(pairings.stream().map(pairing -> new Match(pairing, Result.INCOMPLETE)).collect(Collectors.toSet()));
         Map<Player, Match> tmp = Maps.newHashMap();
         for (Match m : matches) {
             tmp.put(m.getPairing().getPlayer1(), m);

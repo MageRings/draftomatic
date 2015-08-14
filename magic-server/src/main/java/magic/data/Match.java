@@ -1,7 +1,5 @@
 package magic.data;
 
-import javax.annotation.CheckForNull;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -24,7 +22,6 @@ public class Match implements Comparable<Match> {
         return pairing;
     }
 
-    @CheckForNull
     public Result getResult() {
         return result;
     }
@@ -66,13 +63,12 @@ public class Match implements Comparable<Match> {
         if (compare != 0) {
             return compare;
         }
-        if (result == null && o.result == null) {
-            return 0;
-        }
-        if (result == null) {
-            return -1;
-        }
         return result.compareTo(o.result);
+    }
+
+    @Override
+    public String toString() {
+        return "Match [pairing=" + pairing + ", result=" + result + "]";
     }
 
     @Override

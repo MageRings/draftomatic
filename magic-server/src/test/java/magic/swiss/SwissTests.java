@@ -10,12 +10,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 import magic.data.Match;
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
+import magic.data.Round;
 
 public class SwissTests {
 
@@ -29,14 +31,17 @@ public class SwissTests {
                 .add(new Player(4, "red hulk"))
                 .build();
         SwissTournament manager = new SwissTournament("id", 100, players);
-        NavigableSet<Match> matches = manager.getStatus().getRounds().last().getMatches();
-        Assert.assertEquals(matches.size(), 2);
-        matches = Sets.newTreeSet(matches.stream().map(match -> new Match(match.getPairing(), new Result(2, 0, 0))).collect(Collectors.toSet()));
-        manager.registerResults(Optional.of(1), matches);
-        NavigableSet<Pairing> expected = Sets.newTreeSet();
-        expected.add(new Pairing(pairings.first().getPlayer1(), pairings.last().getPlayer1(), 6));
-        expected.add(new Pairing(pairings.first().getPlayer2(), pairings.last().getPlayer2(), 0));
-        Assert.assertEquals(expected, manager.getPairings(Optional.of(2)));
+        Round round = Iterables.getOnlyElement(manager.getStatus().getRounds());
+        Assert.assertEquals(round.getMatches().size(), 2);
+        NavigableSet<Match> matches = Sets.newTreeSet(round.getMatches().stream().map(match ->
+                new Match(match.getPairing(), new Result(2, 0, 0))).collect(Collectors.toSet()));
+        Round actual = manager.registerResults(Optional.of(round.getNumber()), matches);
+
+        NavigableSet<Match> expectedMatches = Sets.newTreeSet();
+        expectedMatches.add(new Match(new Pairing(matches.first().getPairing().getPlayer1(), matches.last().getPairing().getPlayer1(), 6), Result.INCOMPLETE));
+        expectedMatches.add(new Match(new Pairing(matches.first().getPairing().getPlayer2(), matches.last().getPairing().getPlayer2(), 0), Result.INCOMPLETE));
+        Round expected = new Round(round.getNumber() + 1, expectedMatches);
+        Assert.assertEquals(expected.toString(), actual.toString());
     }
 
     @Test
@@ -47,24 +52,20 @@ public class SwissTests {
                 .add(new Player(4, "red hulk"))
                 .build();
         SwissTournament manager = new SwissTournament("id", 100, players);
-        NavigableSet<Pairing> pairings = manager.getPairings(Optional.of(1));
-        Assert.assertEquals(pairings.size(), 2);
-        Set<Result> results = pairings.stream()
-                .map(p -> new Result(p, 2, 0, 0)) // should correct even if we mark the bye as
-                // winning
+        Round round = Iterables.getOnlyElement(manager.getStatus().getRounds());
+        Assert.assertEquals(round.getMatches().size(), 2);
+        Set<Match> matches = round.getMatches().stream()
+                .map(match -> new Match(match.getPairing(), new Result(2, 0, 0))) // should correct even if we mark the bye as winning
                 .collect(Collectors.toSet());
-        results = manager.registerResults(Optional.of(1), results);
-        List<Player> winners = results.stream()
-                .map(r -> r.determineOutcome() == Result.Outcome.P1_WIN ?
-                    r.getPairing().getPlayer1() : r.getPairing().getPlayer2())
-                .collect(Collectors.toList());
-        Player loser = results.stream()
-                .filter(r -> !r.getPairing().getPlayer1().equals(Player.BYE))
+        Round actual = manager.registerResults(Optional.of(round.getNumber()), matches);
+        Player loser = matches.stream()
+                .filter(m -> !m.getPairing().getPlayer1().equals(Player.BYE))
                 .findFirst().get().getPairing().getPlayer2();
+        List<Player> winners = players.stream().filter(p -> !p.equals(loser)).collect(Collectors.toList());
 
-        NavigableSet<Pairing> expected = Sets.newTreeSet();
-        expected.add(new Pairing(winners.get(0), winners.get(1), 6));
-        expected.add(new Pairing(Player.BYE, loser, 0));
-        Assert.assertEquals(expected, manager.getPairings(Optional.of(2)));
+        NavigableSet<Match> expectedMatches = Sets.newTreeSet();
+        expectedMatches.add(new Match(new Pairing(winners.get(0), winners.get(1), 6), Result.INCOMPLETE));
+        expectedMatches.add(new Match(new Pairing(Player.BYE, loser, 0), Result.INCOMPLETE));
+        Assert.assertEquals(new Round(round.getNumber() + 1, expectedMatches).toString(), actual.toString());
     }
 }

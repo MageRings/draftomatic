@@ -29,6 +29,11 @@ public class Round implements Comparable<Round> {
     }
 
     @Override
+    public String toString() {
+        return "Round [number=" + number + ", matches=" + matches + "]";
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

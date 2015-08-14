@@ -11,6 +11,8 @@ public class Result implements Comparable<Result> {
         DRAW
     }
 
+    public static final Result INCOMPLETE = new Result(0, 0, 0);
+
     private final int p1Wins;
     private final int p2Wins;
     private final int draws;
