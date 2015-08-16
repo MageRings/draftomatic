@@ -177,7 +177,7 @@ public class SwissTournament {
         solver.post(ICF.alldifferent(playerVariables.values().toArray(new IntVar[0])));
 
         if (!solver.findSolution()) {
-            throw new IllegalStateException("Could not find pariings!");
+            throw new IllegalStateException("Could not find pairings!");
         }
 
         NavigableSet<Pairing> pairings = solutionToPairings(playerVariables, pointsPerPlayer);
