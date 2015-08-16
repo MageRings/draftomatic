@@ -172,7 +172,7 @@ public class SwissTournament {
         Multimap<Integer, Player> playersAtEachPointLevel = Multimaps.invertFrom(Multimaps.forMap(pointsPerPlayer),
                 HashMultimap.<Integer, Player> create());
         Optional<Map<Player, TieBreakers>> tieBreakers = Optional.empty();
-        if (lastRound) {
+        if (lastRound && results.size() > 0) { //edge case for two-player tournaments.  have to make sure that there is some history
             tieBreakers = Optional.of(TieBreakers.getTieBreakers(results, pointsPerPlayer, tournamentId));
         }
         Solver solver = new Solver();
@@ -192,7 +192,6 @@ public class SwissTournament {
     private NavigableSet<Pairing> solutionToPairings(Map<Player, IntVar> playerVariables, Map<Player, Integer> pointsPerPlayer) {
         Player[] sortedPlayers = new Player[playerVariables.size()];
         for (Map.Entry<Player, IntVar> entry : playerVariables.entrySet()) {
-            System.out.println(entry.getValue().getValue());
             sortedPlayers[entry.getValue().getValue()] = entry.getKey();
         }
         // TODO: list must be even
