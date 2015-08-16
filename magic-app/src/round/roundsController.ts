@@ -26,6 +26,17 @@ module Magic.App.Round {
                 this.tournament.currentRound = response.data.number;
             });
         }
+        
+        public getFinalStandings() {
+            this.tournament.complete = true;
+            var latestRound = this.tournament.rounds[this.tournament.currentRound-1];
+            latestRound.complete = true;
+            this.http.put<any>("api/tournament/results/" + this.tournamentId, latestRound.matches).then(() => {
+                this.http.get<any>("api/tournament/standings/" + this.tournamentId, {round : latestRound.number}).then((response) => {
+                    console.log(response);
+                });
+            });
+        }
     }
 
     magic.controller("roundsController", RoundsController);

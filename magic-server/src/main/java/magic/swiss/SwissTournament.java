@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -68,7 +69,10 @@ public class SwissTournament {
         for (int i = 1; i <= currentRound; i++) {
             rounds.add(getRound(i));
         }
-        return new TournamentStatus(currentRound, isComplete, rounds);
+        return new TournamentStatus(currentRound, numberOfRounds, isComplete, rounds,
+                Sets.newTreeSet(TieBreakers.getTieBreakers(overallResults.values(),
+                        calculatePointsPerPlayer(overallResults.values()),
+                        tournamentId).values()));
     }
 
     private int roundToUse(Optional<Integer> roundRequested) {
@@ -145,7 +149,7 @@ public class SwissTournament {
     private Map<Player, Integer> calculatePointsPerPlayer(Collection<Map<Player, Match>> results) {
         return results.stream().collect(HashMap::new,
                 (map, resultPerPlayer) -> resultPerPlayer.entrySet().stream()
-                        .forEach(entry -> map.put(entry.getKey(), entry.getValue().getPointsForPlayer(entry.getKey()))),
+                .forEach(entry -> map.put(entry.getKey(), entry.getValue().getPointsForPlayer(entry.getKey()))),
                 (finalMap, map) -> map.forEach((k, v) -> finalMap.merge(k, v, Integer::sum)));
     }
 
@@ -212,7 +216,7 @@ public class SwissTournament {
     }
 
     private Map<Player, IntVar> createPlayerVariables(Solver solver, Multimap<Integer, Player> playersAtEachPointLevel,
-            Optional<Map<Player, TieBreakers>> tieBreakers) {
+                                                      Optional<Map<Player, TieBreakers>> tieBreakers) {
         Map<Player, IntVar> result = Maps.newHashMap();
         int rangeStart = 0;
         for (Integer pointLevel : playersAtEachPointLevel.keySet()) {
@@ -224,7 +228,7 @@ public class SwissTournament {
     }
 
     private Map<Player, IntVar> createOneTierOfPlayers(Solver solver, int rangeStart, int rangeEnd,
-            Collection<Player> playersInTier, Optional<Map<Player, TieBreakers>> tieBreakers) {
+                                                       Collection<Player> playersInTier, Optional<Map<Player, TieBreakers>> tieBreakers) {
         // must be shuffled to ensure a random result each time this is run unless we are on the last round
         List<Player> shuffledPlayers = Lists.newArrayList(playersInTier);
         if (tieBreakers.isPresent()) {
@@ -243,7 +247,8 @@ public class SwissTournament {
         int round = roundToUse(roundRequested);
         Collection<Map<Player, Match>> truncatedResults = overallResults.headMap(round, true).values();
         Map<Player, Integer> pointsPerPlayer = calculatePointsPerPlayer(truncatedResults);
-        return Sets.newTreeSet(TieBreakers.getTieBreakers(truncatedResults, pointsPerPlayer, tournamentId).values());
+        TreeSet<TieBreakers> a = Sets.newTreeSet(TieBreakers.getTieBreakers(truncatedResults, pointsPerPlayer, tournamentId).values());
+        return a;
     }
 
     @Override

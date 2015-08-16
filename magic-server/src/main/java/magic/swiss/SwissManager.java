@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 
 import magic.data.Player;
@@ -41,9 +42,14 @@ public class SwissManager {
         return tournament;
     }
 
-    private int getDefaultNumberOfRounds(int numberOfPlayers) {
-        int minNumberOfRounds = Integer.highestOneBit(numberOfPlayers);
-        if (Math.pow(2, minNumberOfRounds) == numberOfPlayers) {
+    @VisibleForTesting
+    /* package */ static int getDefaultNumberOfRounds(int numberOfPlayers) {
+        int closestSmallerPowerOfTwo = Integer.highestOneBit(numberOfPlayers);
+        int minNumberOfRounds = 0;
+        while (closestSmallerPowerOfTwo >> minNumberOfRounds > 1) {
+            minNumberOfRounds++;
+        }
+        if (closestSmallerPowerOfTwo == numberOfPlayers) {
             return minNumberOfRounds;
         }
         return minNumberOfRounds + 1;
