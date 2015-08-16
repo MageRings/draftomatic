@@ -5,9 +5,9 @@ module Magic.App.Tournament {
         public static $inject = ["$scope", "$http", "$state"];
         public tournamentModel: Magic.App.DraftConfig.ITournamentModel;
         public tournament: Swiss;
-        public state: ng.ui.IState;
+        public state: ng.ui.IStateService;
         private http: ng.IHttpService;
-        constructor($scope: ng.IScope, $http: ng.IHttpService, $state, ng.ui.IState) {
+        constructor($scope: ng.IScope, $http: ng.IHttpService, $state: ng.ui.IStateService) {
             this.tournamentModel = {
                 format: "Draft",
                 numRounds: null,

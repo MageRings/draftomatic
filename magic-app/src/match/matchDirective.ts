@@ -4,6 +4,7 @@ module Magic.App.Match {
         public restrict = "E";
         public scope = {
             match: "=",
+            round: "="
         };
         public templateUrl = "match/matchTemplate.html";
     }

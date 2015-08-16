@@ -7,6 +7,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import magic.exceptions.CatchAllExceptionMapper;
 import magic.exceptions.IllegalArgumentExceptionMapper;
+import magic.exceptions.TournamentNotFoundExceptionMapper;
 import magic.resource.DeckResource;
 import magic.resource.PlayerResource;
 import magic.resource.TournamentResource;
@@ -34,5 +35,6 @@ public final class MagicApplication extends Application<MagicConfiguration> {
         //exception mappers
         environment.jersey().register(new CatchAllExceptionMapper());
         environment.jersey().register(new IllegalArgumentExceptionMapper());
+        environment.jersey().register(new TournamentNotFoundExceptionMapper());
     }
 }

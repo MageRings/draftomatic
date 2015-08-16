@@ -60,7 +60,7 @@ public class SwissTournament {
 
     private Round getRound(int roundNum) {
         NavigableSet<Match> matches =  Sets.newTreeSet(overallResults.get(roundNum).values());
-        return new Round(roundNum, matches);
+        return new Round(roundNum, matches, isComplete || roundNum != currentRound);
     }
 
     public TournamentStatus getStatus() {
@@ -116,10 +116,10 @@ public class SwissTournament {
                 isComplete = true;
             } else {
                 currentRound += 1;
-                return new Round(currentRound, getPairings());
+                return new Round(currentRound, getPairings(), false);
             }
         }
-        return new Round(currentRound, Sets.newTreeSet(newResultEntry.values()));
+        return new Round(currentRound, Sets.newTreeSet(newResultEntry.values()), true);
     }
 
     Constraint cannotPlayAgain(IntVar player1, IntVar player2) {
@@ -176,7 +176,9 @@ public class SwissTournament {
         disallowRepairing(solver, playerVariables, alreadyMatched);
         solver.post(ICF.alldifferent(playerVariables.values().toArray(new IntVar[0])));
 
-        solver.findSolution();
+        if (!solver.findSolution()) {
+            throw new IllegalStateException("Could not find pariings!");
+        }
 
         NavigableSet<Pairing> pairings = solutionToPairings(playerVariables, pointsPerPlayer);
         return pairings;
@@ -186,6 +188,7 @@ public class SwissTournament {
     private NavigableSet<Pairing> solutionToPairings(Map<Player, IntVar> playerVariables, Map<Player, Integer> pointsPerPlayer) {
         Player[] sortedPlayers = new Player[playerVariables.size()];
         for (Map.Entry<Player, IntVar> entry : playerVariables.entrySet()) {
+            System.out.println(entry.getValue().getValue());
             sortedPlayers[entry.getValue().getValue()] = entry.getKey();
         }
         // TODO: list must be even

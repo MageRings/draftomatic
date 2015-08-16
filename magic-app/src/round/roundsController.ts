@@ -8,8 +8,7 @@ module Magic.App.Round {
         private http : ng.IHttpService;
         
         constructor($scope: ng.IScope, $stateParams: ng.ui.IStateParamsService, $http: ng.IHttpService) {
-            console.log($stateParams);
-            this.tournamentId = $stateParams.id;
+            this.tournamentId = $stateParams["id"];
             this.scope = $scope;
             this.http = $http;
             this.http.get<any>("api/tournament/status/" + this.tournamentId).then((response) => {
@@ -19,12 +18,12 @@ module Magic.App.Round {
         }
         
         public pairNextRound() {
-            var latestRoundMatches = this.tournament.rounds[this.tournament.currentRound-1].matches;
-            console.log(latestRoundMatches);
-            this.tournament.currentRound += 1;
-            this.http.put<any>("api/tournament/results/" + this.tournamentId, latestRoundMatches).then((response) => {
+            var latestRound = this.tournament.rounds[this.tournament.currentRound-1];
+            latestRound.complete = true;
+            this.http.put<any>("api/tournament/results/" + this.tournamentId, latestRound.matches).then((response) => {
                 console.log(response);
                 this.tournament.rounds.push(response.data);
+                this.tournament.currentRound = response.data.number;
             });
         }
     }

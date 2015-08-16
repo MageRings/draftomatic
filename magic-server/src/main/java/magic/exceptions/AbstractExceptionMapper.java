@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public abstract class AbstractExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
+public abstract class AbstractExceptionMapper<T extends Exception> implements ExceptionMapper<T> {
     private static final Logger log = LoggerFactory.getLogger(AbstractExceptionMapper.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 

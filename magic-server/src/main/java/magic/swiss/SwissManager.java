@@ -7,8 +7,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.Maps;
 
-import magic.data.TournamentType;
 import magic.data.Player;
+import magic.data.TournamentType;
+import magic.exceptions.TournamentNotFoundException;
 
 public class SwissManager {
 
@@ -33,7 +34,11 @@ public class SwissManager {
     }
 
     public SwissTournament getTournament(String tournamentId) {
-        return runningTournaments.get(tournamentId);
+        SwissTournament tournament = runningTournaments.get(tournamentId);
+        if (tournament == null) {
+            throw new TournamentNotFoundException(tournamentId);
+        }
+        return tournament;
     }
 
     private int getDefaultNumberOfRounds(int numberOfPlayers) {

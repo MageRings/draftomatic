@@ -8,12 +8,15 @@ public class Round implements Comparable<Round> {
 
     private final int number;
     private final NavigableSet<Match> matches;
+    private final boolean complete;
 
     public Round(
             @JsonProperty("number") int number,
-            @JsonProperty("matches") NavigableSet<Match> matches) {
+            @JsonProperty("matches") NavigableSet<Match> matches,
+            @JsonProperty("complete") boolean complete) {
         this.number = number;
         this.matches = matches;
+        this.complete = complete;
     }
 
     public int getNumber() {
@@ -21,6 +24,9 @@ public class Round implements Comparable<Round> {
     }
     public NavigableSet<Match> getMatches() {
         return matches;
+    }
+    public boolean isComplete() {
+        return complete;
     }
 
     @Override
@@ -30,15 +36,16 @@ public class Round implements Comparable<Round> {
 
     @Override
     public String toString() {
-        return "Round [number=" + number + ", matches=" + matches + "]";
+        return "Round [number=" + number + ", matches=" + matches + ", complete=" + complete + "]";
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + number;
+        result = prime * result + (complete ? 1231 : 1237);
         result = prime * result + ((matches == null) ? 0 : matches.hashCode());
+        result = prime * result + number;
         return result;
     }
 
@@ -54,7 +61,7 @@ public class Round implements Comparable<Round> {
             return false;
         }
         Round other = (Round) obj;
-        if (number != other.number) {
+        if (complete != other.complete) {
             return false;
         }
         if (matches == null) {
@@ -64,7 +71,9 @@ public class Round implements Comparable<Round> {
         } else if (!matches.equals(other.matches)) {
             return false;
         }
+        if (number != other.number) {
+            return false;
+        }
         return true;
     }
-
 }

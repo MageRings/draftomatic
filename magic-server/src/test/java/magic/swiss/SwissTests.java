@@ -40,7 +40,7 @@ public class SwissTests {
         NavigableSet<Match> expectedMatches = Sets.newTreeSet();
         expectedMatches.add(new Match(new Pairing(matches.first().getPairing().getPlayer1(), matches.last().getPairing().getPlayer1(), 6), Result.INCOMPLETE));
         expectedMatches.add(new Match(new Pairing(matches.first().getPairing().getPlayer2(), matches.last().getPairing().getPlayer2(), 0), Result.INCOMPLETE));
-        Round expected = new Round(round.getNumber() + 1, expectedMatches);
+        Round expected = new Round(round.getNumber() + 1, expectedMatches, false);
         Assert.assertEquals(expected.toString(), actual.toString());
     }
 
@@ -66,6 +66,6 @@ public class SwissTests {
         NavigableSet<Match> expectedMatches = Sets.newTreeSet();
         expectedMatches.add(new Match(new Pairing(winners.get(0), winners.get(1), 6), Result.INCOMPLETE));
         expectedMatches.add(new Match(new Pairing(Player.BYE, loser, 0), Result.INCOMPLETE));
-        Assert.assertEquals(new Round(round.getNumber() + 1, expectedMatches).toString(), actual.toString());
+        Assert.assertEquals(new Round(round.getNumber() + 1, expectedMatches, false).toString(), actual.toString());
     }
 }
