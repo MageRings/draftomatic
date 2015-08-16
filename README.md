@@ -1,4 +1,6 @@
-#Basic Usage
+[![Build Status](https://travis-ci.org/billbindi/draftomatic.svg?branch=develop)](https://travis-ci.org/billbindi/draftomatic)
+
+# Basic Usage
 
 ## Run:
         ./gradlew run
