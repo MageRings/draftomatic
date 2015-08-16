@@ -3,6 +3,7 @@ package magic.swiss;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -66,8 +67,44 @@ public class TieBreakers implements Comparable<TieBreakers> {
                         )));
     }
 
+    public TieBreakers(
+                       @JsonProperty("player") Player player,
+                       @JsonProperty("matchPoints") int matchPoints,
+                       @JsonProperty("opponentMatchWinPercentage") double opponentMatchWinPercentage,
+                       @JsonProperty("gameWinPercentage") double gameWinPercentage,
+                       @JsonProperty("oppponentGameWinPercentage") double opponentGameWinPercentage,
+                       @JsonProperty("finalTiebreaker") byte[] finalTiebreaker) {
+        this.player = player;
+        this.matchPoints = matchPoints;
+        this.opponentMatchWinPercentage = opponentMatchWinPercentage;
+        this.gameWinPercentage = gameWinPercentage;
+        this.opponentGameWinPercentage = opponentGameWinPercentage;
+        this.finalTiebreaker = finalTiebreaker;
+    }
+
+
     public Player getPlayer() {
         return player;
+    }
+
+    public int getMatchPoints() {
+        return matchPoints;
+    }
+
+    public double getOpponentMatchWinPercentage() {
+        return opponentMatchWinPercentage;
+    }
+
+    public double getGameWinPercentage() {
+        return gameWinPercentage;
+    }
+
+    public double getOpponentGameWinPercentage() {
+        return opponentGameWinPercentage;
+    }
+
+    public byte[] getFinalTiebreaker() {
+        return finalTiebreaker;
     }
 
     private static final int GREATER = 1;
@@ -87,21 +124,6 @@ public class TieBreakers implements Comparable<TieBreakers> {
             return opponentGameWinPercentage > other.opponentGameWinPercentage ? GREATER : LESS;
         }
         return BaseEncoding.base32Hex().encode(finalTiebreaker).compareTo(BaseEncoding.base32Hex().encode(other.finalTiebreaker));
-    }
-
-    @VisibleForTesting
-    /* package */ TieBreakers(
-                              @JsonProperty("player") Player player,
-                              @JsonProperty("matchPoints") int matchPoints,
-                              @JsonProperty("opponentMatchWinPercentage") double opponentMatchWinPercentage,
-                              @JsonProperty("gameWinPercentage") double gameWinPercentage,
-                              @JsonProperty("oppponentGameWinPercentage") double opponentGameWinPercentage, byte[] finalTiebreaker) {
-        this.player = player;
-        this.matchPoints = matchPoints;
-        this.opponentMatchWinPercentage = opponentMatchWinPercentage;
-        this.gameWinPercentage = gameWinPercentage;
-        this.opponentGameWinPercentage = opponentGameWinPercentage;
-        this.finalTiebreaker = finalTiebreaker;
     }
 
     private static Map<Player, Collection<Match>> getFlatResults(Collection<Map<Player, Match>> results) {
@@ -154,4 +176,69 @@ public class TieBreakers implements Comparable<TieBreakers> {
                     .collect(Collectors.averagingDouble(result -> playerWinPercentage.get(result.getPairing().getOpponent(player))));
         }));
     }
+
+    @Override
+    public String toString() {
+        return "TieBreakers [player=" + player + ", matchPoints=" + matchPoints + ", opponentMatchWinPercentage="
+                + opponentMatchWinPercentage + ", gameWinPercentage=" + gameWinPercentage
+                + ", opponentGameWinPercentage=" + opponentGameWinPercentage + ", finalTiebreaker="
+                + Arrays.toString(finalTiebreaker) + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + Arrays.hashCode(finalTiebreaker);
+        long temp;
+        temp = Double.doubleToLongBits(gameWinPercentage);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + matchPoints;
+        temp = Double.doubleToLongBits(opponentGameWinPercentage);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(opponentMatchWinPercentage);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + ((player == null) ? 0 : player.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        TieBreakers other = (TieBreakers) obj;
+        if (!Arrays.equals(finalTiebreaker, other.finalTiebreaker)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(gameWinPercentage) != Double.doubleToLongBits(other.gameWinPercentage)) {
+            return false;
+        }
+        if (matchPoints != other.matchPoints) {
+            return false;
+        }
+        if (Double.doubleToLongBits(opponentGameWinPercentage) != Double
+                .doubleToLongBits(other.opponentGameWinPercentage)) {
+            return false;
+        }
+        if (Double.doubleToLongBits(opponentMatchWinPercentage) != Double
+                .doubleToLongBits(other.opponentMatchWinPercentage)) {
+            return false;
+        }
+        if (player == null) {
+            if (other.player != null) {
+                return false;
+            }
+        } else if (!player.equals(other.player)) {
+            return false;
+        }
+        return true;
+    }
+
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -246,7 +247,8 @@ public class SwissTournament {
         int round = roundToUse(roundRequested);
         Collection<Map<Player, Match>> truncatedResults = overallResults.headMap(round, true).values();
         Map<Player, Integer> pointsPerPlayer = calculatePointsPerPlayer(truncatedResults);
-        return Sets.newTreeSet(TieBreakers.getTieBreakers(truncatedResults, pointsPerPlayer, tournamentId).values());
+        TreeSet<TieBreakers> a = Sets.newTreeSet(TieBreakers.getTieBreakers(truncatedResults, pointsPerPlayer, tournamentId).values());
+        return a;
     }
 
     @Override
