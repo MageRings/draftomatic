@@ -68,7 +68,10 @@ public class SwissTournament {
         for (int i = 1; i <= currentRound; i++) {
             rounds.add(getRound(i));
         }
-        return new TournamentStatus(currentRound, numberOfRounds, isComplete, rounds);
+        return new TournamentStatus(currentRound, numberOfRounds, isComplete, rounds,
+                Sets.newTreeSet(TieBreakers.getTieBreakers(overallResults.values(),
+                        calculatePointsPerPlayer(overallResults.values()),
+                        tournamentId).values()));
     }
 
     private int roundToUse(Optional<Integer> roundRequested) {

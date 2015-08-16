@@ -11,6 +11,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimaps;
@@ -62,7 +63,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
                         playerGameWinPercentages.get(player),
                         opponentGameWinPercentages.get(player),
                         md.digest((tournamentId + player.getId()).getBytes(StandardCharsets.UTF_8))
-                )));
+                        )));
     }
 
     public Player getPlayer() {
@@ -89,8 +90,12 @@ public class TieBreakers implements Comparable<TieBreakers> {
     }
 
     @VisibleForTesting
-    /* package */ TieBreakers(Player player, int matchPoints, double opponentMatchWinPercentage, double gameWinPercentage,
-            double opponentGameWinPercentage, byte[] finalTiebreaker) {
+    /* package */ TieBreakers(
+                              @JsonProperty("player") Player player,
+                              @JsonProperty("matchPoints") int matchPoints,
+                              @JsonProperty("opponentMatchWinPercentage") double opponentMatchWinPercentage,
+                              @JsonProperty("gameWinPercentage") double gameWinPercentage,
+                              @JsonProperty("oppponentGameWinPercentage") double opponentGameWinPercentage, byte[] finalTiebreaker) {
         this.player = player;
         this.matchPoints = matchPoints;
         this.opponentMatchWinPercentage = opponentMatchWinPercentage;
@@ -108,7 +113,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
 
     @VisibleForTesting
     /* package */ static Map<Player, Double> calculatePlayerMatchWinPercentages(Map<Player, Collection<Match>> flatResults,
-            Map<Player, Integer> pointsPerPlayer) {
+                                                                                Map<Player, Integer> pointsPerPlayer) {
         return flatResults.entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> {
             if (entry.getValue().size() == 0) {
                 return MINIMUM_MATCH_WIN_PERCENTAGE;
@@ -137,7 +142,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
 
     @VisibleForTesting
     /* package */ static  Map<Player, Double> calculateOpponentWinPercentages(Map<Player, Collection<Match>> flatResults,
-            Map<Player, Double> playerWinPercentage, Double defaultResult) {
+                                                                              Map<Player, Double> playerWinPercentage, Double defaultResult) {
         return flatResults.entrySet().stream().collect(Collectors.toMap(Entry::getKey, resultsPerPlayer -> {
             if (resultsPerPlayer.getValue().size() == 0) {
                 return defaultResult;
