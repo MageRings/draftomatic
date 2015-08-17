@@ -15,7 +15,7 @@ import com.google.common.io.Files;
 import magic.data.Deck;
 import magic.data.Player;
 import magic.data.Tournament;
-import magic.data.TournamentType;
+import magic.data.Format;
 
 public class Database {
 
@@ -140,7 +140,7 @@ public class Database {
         long id = Long.parseLong(parts[DatabaseConstants.DECKS_ID]);
         String colors = parts[DatabaseConstants.DECKS_COLORS];
         String archetype = parts[DatabaseConstants.DECKS_ARCHETYPE];
-        TournamentType format = TournamentType.valueOf(parts[DatabaseConstants.DECKS_FORMAT]);
+        Format format = Format.valueOf(parts[DatabaseConstants.DECKS_FORMAT]);
         return new Deck(id, colors, archetype, format);
     }
 
@@ -162,7 +162,7 @@ public class Database {
     private static Tournament parseTournamentFromLine(String line) {
         String[] parts = line.split(DELIMETER);
         long id = Long.parseLong(parts[DatabaseConstants.TOURNAMENTS_ID]);
-        TournamentType format = TournamentType.valueOf(parts[DatabaseConstants.TOURNAMENTS_FORMAT]);
+        Format format = Format.valueOf(parts[DatabaseConstants.TOURNAMENTS_FORMAT]);
         String code = parts[DatabaseConstants.TOURNAMENTS_CODE];
         Optional<String> formatCode = code.equals(NO_FORMAT_CODE) ? Optional.empty() : Optional.of(code);
         return new Tournament(id, format, formatCode);

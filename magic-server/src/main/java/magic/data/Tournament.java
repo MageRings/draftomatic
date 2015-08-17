@@ -10,18 +10,18 @@ import magic.data.database.Database;
 public class Tournament {
 
     private final long id;
-    private final TournamentType format;
+    private final Format format;
     private final Optional<String> formatCode;
 
     @JsonCreator
-    public Tournament(@JsonProperty("format") TournamentType format,
+    public Tournament(@JsonProperty("format") Format format,
                       @JsonProperty("code") Optional<String> formatCode) {
         this(Database.nextTournamentId(), format, formatCode);
     }
 
     @JsonCreator
     public Tournament(@JsonProperty("id") long id,
-                      @JsonProperty("format") TournamentType format,
+                      @JsonProperty("format") Format format,
                       @JsonProperty("code") Optional<String> formatCode) {
         this.id = id;
         this.format = format;
@@ -32,7 +32,7 @@ public class Tournament {
         return id;
     }
 
-    public TournamentType getFormat() {
+    public Format getFormat() {
         return format;
     }
 

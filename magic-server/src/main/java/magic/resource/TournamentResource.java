@@ -16,7 +16,7 @@ import magic.data.Match;
 import magic.data.Player;
 import magic.data.Round;
 import magic.data.TournamentStatus;
-import magic.data.TournamentType;
+import magic.data.Format;
 import magic.swiss.SwissManager;
 import magic.swiss.TieBreakers;
 
@@ -38,7 +38,7 @@ public class TournamentResource {
     @Produces("application/json")
     public String registerTournament(
             @QueryParam("rounds") Integer rounds,
-            @QueryParam("format") TournamentType format,
+            @QueryParam("format") Format format,
             @QueryParam("code") String formatCode,
             Collection<Player> players) {
         return jsonifyString(manager.registerTournament(Optional.ofNullable(rounds), Optional.ofNullable(format), Optional.ofNullable(formatCode), players));

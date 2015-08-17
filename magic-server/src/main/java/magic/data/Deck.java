@@ -10,12 +10,12 @@ public class Deck {
     private final long id;
     private final String colors;
     private final String archetype;
-    private final TournamentType format;
+    private final Format format;
 
     @JsonCreator
     public Deck(@JsonProperty("colors") String colors,
                 @JsonProperty("archetype") String archetype,
-                @JsonProperty("format") TournamentType format) {
+                @JsonProperty("format") Format format) {
         this(Database.nextDeckId(), colors, archetype, format);
     }
 
@@ -23,7 +23,7 @@ public class Deck {
     public Deck(@JsonProperty("id") long id,
                 @JsonProperty("colors") String colors,
                 @JsonProperty("archetype") String archetype,
-                @JsonProperty("format") TournamentType format) {
+                @JsonProperty("format") Format format) {
         this.id = id;
         this.colors = colors;
         this.archetype = archetype;
@@ -42,7 +42,7 @@ public class Deck {
         return archetype;
     }
 
-    public TournamentType getFormat() {
+    public Format getFormat() {
         return format;
     }
 
