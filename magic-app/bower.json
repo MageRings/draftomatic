@@ -12,6 +12,8 @@
     "build/src/round/roundDirective.js",
     "build/src/draftConfig/draftConfigController.js",
     "build/src/draftConfig/draftConfigDirective.js",
+    "build/src/finalStandings/finalStandingsController.js",
+    "build/src/finalStandings/finalStandingsDirective.js",
     "build/src/app.css"
   ],
   "devMain": [

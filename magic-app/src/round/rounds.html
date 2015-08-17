@@ -6,3 +6,4 @@
     <div ng-if="roundsController.tournament.numberOfRounds != roundsController.tournament.currentRound" ng-click="roundsController.pairNextRound()">next round</div>
   </div>
 </div>
+<final-standings ng-if="roundsController.tournament.complete" standings="roundsController.standings"></final-standings>
