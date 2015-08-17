@@ -69,24 +69,14 @@ public class Database {
     }
 
     private static AtomicLong readId(File file, int idIndex) {
-        Stream<String> lines = null;
-        try {
-            lines = lines(file);
-            Optional<Integer> max = lines.map(line -> line.split(DELIMETER))
-                                         .map(arr -> arr[idIndex])
-                                         .map(id -> Integer.valueOf(id))
-                                         .max(Comparator.naturalOrder());
-            if (max == Optional.<Integer>empty()) {
-                return new AtomicLong();
-            } else {
-                return new AtomicLong(max.get());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Error parsing data ids in file " + file.getAbsolutePath(), e);
-        } finally {
-            if (lines != null) {
-                lines.close();
-            }
+        try (Stream<String> lines = lines(file)) {
+            return new AtomicLong(lines.map(line -> line.split(DELIMETER))
+                                       .map(arr -> arr[idIndex])
+                                       .map(Integer::valueOf)
+                                       .max(Comparator.naturalOrder())
+                                       .get());
+        } catch (Exception e) {
+            return new AtomicLong();
         }
     }
 
@@ -109,6 +99,7 @@ public class Database {
 
     public static List<Player> readPlayers() throws IOException {
         return lines(DatabaseConstants.PLAYERS)
+                .filter(line -> Long.parseLong(line.split(DELIMETER)[DatabaseConstants.PLAYERS_ID]) != 0)
                 .map(line -> parsePlayerFromLine(line))
                 .collect(Collectors.toList());
     }
