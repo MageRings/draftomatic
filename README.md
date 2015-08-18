@@ -8,6 +8,11 @@
 ## View the application at:
         http://localhost:8000/magic/
 
+# About
+
+Draftomatic seeks to provide a client-server architecture for swiss pairings.  Ideally this will disassociate the relatively complicated logic of pairings players from the acts of displaying the
+pairings or recording results.
+
 #Developing
 
 1. Run `./gradlew eclipse`.  This will fetch the java dependencies
