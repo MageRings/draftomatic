@@ -1,4 +1,4 @@
-package magic.swiss;
+package magic.tournament;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -126,7 +126,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
         return BaseEncoding.base32Hex().encode(finalTiebreaker).compareTo(BaseEncoding.base32Hex().encode(other.finalTiebreaker));
     }
 
-    private static Map<Player, Collection<Match>> getFlatResults(Collection<Map<Player, Match>> results) {
+    public static Map<Player, Collection<Match>> getFlatResults(Collection<Map<Player, Match>> results) {
         return results.stream().collect(
                 HashMultimap::<Player, Match>create,
                 (map, resultsPerPlayer) -> map.putAll(Multimaps.forMap(resultsPerPlayer)),

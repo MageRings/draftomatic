@@ -1,27 +1,18 @@
-package magic.swiss;
+package magic.tournament;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.chocosolver.solver.Solver;
-import org.chocosolver.solver.constraints.Constraint;
-import org.chocosolver.solver.constraints.ICF;
-import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.solver.variables.VariableFactory;
-
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -34,26 +25,26 @@ import magic.data.Result;
 import magic.data.Round;
 import magic.data.TournamentStatus;
 
-public class SwissTournament {
+public abstract class AbstractTournament implements Tournament {
 
     private final String tournamentId;
     private final ConcurrentNavigableMap<Integer, Map<Player, Match>> overallResults = new ConcurrentSkipListMap<>();
-    private final ConcurrentMap<Long, Player> players = Maps.newConcurrentMap();
+    private final Set<Player> players = Sets.newHashSet();
     private int currentRound = 1;
     private final int numberOfRounds;
     private boolean isComplete = false;
 
-    public SwissTournament(String tournamentId, int numberOfRounds, Collection<Player> players) {
+    public AbstractTournament(String tournamentId, int numberOfRounds, Iterable<Player> inputPlayers) {
         this.tournamentId = tournamentId;
-        for (Player p : players) {
+        for (Player p : inputPlayers) {
             if (players.contains(p.getId())) {
                 throw new IllegalArgumentException("Two players have the same id: " + p.getId());
             }
-            this.players.put(p.getId(), p);
+            this.players.add(p);
         }
         if (this.players.size() % 2 != 0) {
             // add in a bye
-            this.players.put(0L, Player.BYE);
+            this.players.add(Player.BYE);
         }
         this.numberOfRounds = numberOfRounds;
         getPairings();
@@ -64,6 +55,7 @@ public class SwissTournament {
         return new Round(roundNum, matches, isComplete || roundNum != currentRound);
     }
 
+    @Override
     public TournamentStatus getStatus() {
         NavigableSet<Round> rounds = Sets.newTreeSet();
         for (int i = 1; i <= currentRound; i++) {
@@ -92,6 +84,7 @@ public class SwissTournament {
      * @param thisRoundResults
      * @return - the next round (without results)
      */
+    @Override
     public synchronized Round registerResults(Optional<Integer> roundRequested, Collection<Match> thisRoundResults) {
         if (isComplete) {
             throw new IllegalArgumentException("This tournament is already compelete!");
@@ -125,15 +118,6 @@ public class SwissTournament {
         }
         return new Round(currentRound, Sets.newTreeSet(newResultEntry.values()), true);
     }
-
-    Constraint cannotPlayAgain(IntVar player1, IntVar player2) {
-        return ICF.arithm(player1, "!=", player2, "-", 1);
-    }
-
-    IntVar createPlayerVariable(Solver solver, int playerId, int rangeStart, int rangeEnd) {
-        return VariableFactory.bounded(String.valueOf(playerId), rangeStart, rangeEnd - 1, solver);
-    }
-
     private synchronized NavigableSet<Match> getPairings() {
         NavigableSet<Pairing> pairings = calculatePairings(overallResults.values(), currentRound == numberOfRounds);
         NavigableSet<Match> matches = Sets.newTreeSet(pairings.stream().map(pairing -> new Match(pairing, Result.INCOMPLETE)).collect(Collectors.toSet()));
@@ -167,7 +151,7 @@ public class SwissTournament {
         Multimap<Player, Player> alreadyMatched = alreadyMatched(results);
         Map<Player, Integer> pointsPerPlayer = calculatePointsPerPlayer(results);
         if (pointsPerPlayer.isEmpty()) {
-            pointsPerPlayer = players.values().stream().collect(Collectors.toMap(Function.identity(), player -> 0));
+            pointsPerPlayer = players.stream().collect(Collectors.toMap(Function.identity(), player -> 0));
         }
         Multimap<Integer, Player> playersAtEachPointLevel = Multimaps.invertFrom(Multimaps.forMap(pointsPerPlayer),
                 HashMultimap.<Integer, Player> create());
@@ -175,73 +159,13 @@ public class SwissTournament {
         if (lastRound && results.size() > 0) { //edge case for two-player tournaments.  have to make sure that there is some history
             tieBreakers = Optional.of(TieBreakers.getTieBreakers(results, pointsPerPlayer, tournamentId));
         }
-        Solver solver = new Solver();
-        Map<Player, IntVar> playerVariables = createPlayerVariables(solver, playersAtEachPointLevel, tieBreakers);
-        disallowRepairing(solver, playerVariables, alreadyMatched);
-        solver.post(ICF.alldifferent(playerVariables.values().toArray(new IntVar[0])));
-
-        if (!solver.findSolution()) {
-            throw new IllegalStateException("Could not find pairings!");
-        }
-
-        NavigableSet<Pairing> pairings = solutionToPairings(playerVariables, pointsPerPlayer);
-        return pairings;
+        return innerCalculatePairings(playersAtEachPointLevel, tieBreakers, pointsPerPlayer, alreadyMatched);
     }
 
-    // sort pairings by combined points of two players
-    private NavigableSet<Pairing> solutionToPairings(Map<Player, IntVar> playerVariables, Map<Player, Integer> pointsPerPlayer) {
-        Player[] sortedPlayers = new Player[playerVariables.size()];
-        for (Map.Entry<Player, IntVar> entry : playerVariables.entrySet()) {
-            sortedPlayers[entry.getValue().getValue()] = entry.getKey();
-        }
-        // TODO: list must be even
-        NavigableSet<Pairing> pairings = Sets.newTreeSet();
-        for (int i = 0; i < sortedPlayers.length; i += 2) {
-            Player player1 = sortedPlayers[i];
-            Player player2 = sortedPlayers[i + 1];
-            int totalPoints = pointsPerPlayer.get(player1) + pointsPerPlayer.get(player2);
-            pairings.add(new Pairing(player1, player2, totalPoints));
-        }
-        return pairings;
-    }
+    protected abstract NavigableSet<Pairing> innerCalculatePairings(Multimap<Integer, Player> playersAtEachPointLevel, Optional<Map<Player, TieBreakers>> tieBreakers,
+            Map<Player, Integer> pointsPerPlayer, Multimap<Player, Player> alreadyMatched);
 
-    private void disallowRepairing(Solver solver, Map<Player, IntVar> playerVariables, Multimap<Player, Player> alreadyMatched) {
-        for (Map.Entry<Player, IntVar> playerAndVariable : playerVariables.entrySet()) {
-            for (Player other : alreadyMatched.get(playerAndVariable.getKey())) {
-                Constraint constraint = cannotPlayAgain(playerAndVariable.getValue(), playerVariables.get(other));
-                solver.post(constraint);
-            }
-        }
-    }
-
-    private Map<Player, IntVar> createPlayerVariables(Solver solver, Multimap<Integer, Player> playersAtEachPointLevel,
-                                                      Optional<Map<Player, TieBreakers>> tieBreakers) {
-        Map<Player, IntVar> result = Maps.newHashMap();
-        int rangeStart = 0;
-        for (Integer pointLevel : playersAtEachPointLevel.keySet()) {
-            Collection<Player> players = playersAtEachPointLevel.get(pointLevel);
-            result.putAll(createOneTierOfPlayers(solver, rangeStart, rangeStart + players.size(), players, tieBreakers));
-            rangeStart += players.size();
-        }
-        return result;
-    }
-
-    private Map<Player, IntVar> createOneTierOfPlayers(Solver solver, int rangeStart, int rangeEnd,
-                                                       Collection<Player> playersInTier, Optional<Map<Player, TieBreakers>> tieBreakers) {
-        // must be shuffled to ensure a random result each time this is run unless we are on the last round
-        List<Player> shuffledPlayers = Lists.newArrayList(playersInTier);
-        if (tieBreakers.isPresent()) {
-            Collections.sort(shuffledPlayers, (a , b) -> tieBreakers.get().get(a).compareTo(tieBreakers.get().get(b)));
-        } else {
-            Collections.shuffle(shuffledPlayers);
-        }
-        Map<Player, IntVar> result = Maps.newHashMap();
-        for (int i = 0; i < shuffledPlayers.size(); i++) {
-            result.put(shuffledPlayers.get(i), createPlayerVariable(solver, i, rangeStart, rangeEnd));
-        }
-        return result;
-    }
-
+    @Override
     public NavigableSet<TieBreakers> getTieBreakers(Optional<Integer> roundRequested) {
         int round = roundToUse(roundRequested);
         Collection<Map<Player, Match>> truncatedResults = overallResults.headMap(round, true).values();
@@ -272,7 +196,7 @@ public class SwissTournament {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        SwissTournament other = (SwissTournament) obj;
+        AbstractTournament other = (AbstractTournament) obj;
         if (numberOfRounds != other.numberOfRounds) {
             return false;
         }

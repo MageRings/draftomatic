@@ -1,4 +1,4 @@
-package magic.swiss;
+package magic.tournament.swiss;
 
 import java.util.List;
 import java.util.NavigableSet;
@@ -18,6 +18,7 @@ import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
 import magic.data.Round;
+import magic.tournament.swiss.SwissTournament;
 
 public class SwissTests {
 
@@ -30,7 +31,7 @@ public class SwissTests {
                 .add(new Player(3, "sam"))
                 .add(new Player(4, "red hulk"))
                 .build();
-        SwissTournament manager = new SwissTournament("id", 100, players);
+        SwissTournament manager = new SwissTournament("id", Optional.empty(), players);
         Round round = Iterables.getOnlyElement(manager.getStatus().getRounds());
         Assert.assertEquals(round.getMatches().size(), 2);
         NavigableSet<Match> matches = Sets.newTreeSet(round.getMatches().stream().map(match ->
@@ -51,7 +52,7 @@ public class SwissTests {
                 .add(new Player(3, "sam"))
                 .add(new Player(4, "red hulk"))
                 .build();
-        SwissTournament manager = new SwissTournament("id", 100, players);
+        SwissTournament manager = new SwissTournament("id", Optional.empty(), players);
         Round round = Iterables.getOnlyElement(manager.getStatus().getRounds());
         Assert.assertEquals(round.getMatches().size(), 2);
         Set<Match> matches = round.getMatches().stream()

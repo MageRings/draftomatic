@@ -4,7 +4,7 @@ import java.util.NavigableSet;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import magic.swiss.TieBreakers;
+import magic.tournament.TieBreakers;
 
 public class TournamentStatus {
 

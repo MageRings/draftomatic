@@ -16,17 +16,17 @@ import magic.data.Match;
 import magic.data.Player;
 import magic.data.Round;
 import magic.data.TournamentStatus;
+import magic.tournament.TieBreakers;
+import magic.tournament.TournamentManager;
 import magic.data.Format;
-import magic.swiss.SwissManager;
-import magic.swiss.TieBreakers;
 
 @Path("tournament")
 public class TournamentResource {
 
-    private SwissManager manager;
+    private TournamentManager manager;
 
     public TournamentResource() {
-        this.manager = new SwissManager();
+        this.manager = new TournamentManager();
     }
 
     private String jsonifyString(String arg) {
