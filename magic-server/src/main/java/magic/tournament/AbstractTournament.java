@@ -12,6 +12,22 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.chocosolver.solver.Solver;
+import org.chocosolver.solver.constraints.Constraint;
+import org.chocosolver.solver.variables.IntVar;
+import org.chocosolver.solver.variables.VariableFactory;
+
+import org.chocosolver.solver.ResolutionPolicy;
+import org.chocosolver.solver.constraints.Propagator;
+import org.chocosolver.solver.cstrs.cost.trees.PropTreeCostSimple;
+import org.chocosolver.solver.cstrs.degree.PropNodeDegree_Var;
+import org.chocosolver.solver.search.GraphStrategyFactory;
+import org.chocosolver.solver.trace.Chatterbox;
+import org.chocosolver.solver.variables.GraphVarFactory;
+import org.chocosolver.solver.variables.IUndirectedGraphVar;
+import org.chocosolver.util.objects.graphs.UndirectedGraph;
+import org.chocosolver.util.objects.setDataStructures.SetType;
+
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -163,7 +179,7 @@ public abstract class AbstractTournament implements Tournament {
     }
 
     protected abstract NavigableSet<Pairing> innerCalculatePairings(Multimap<Integer, Player> playersAtEachPointLevel, Optional<Map<Player, TieBreakers>> tieBreakers,
-            Map<Player, Integer> pointsPerPlayer, Multimap<Player, Player> alreadyMatched);
+                                                                    Map<Player, Integer> pointsPerPlayer, Multimap<Player, Player> alreadyMatched);
 
     @Override
     public NavigableSet<TieBreakers> getTieBreakers(Optional<Integer> roundRequested) {
@@ -223,4 +239,67 @@ public abstract class AbstractTournament implements Tournament {
         }
         return true;
     }
+
+    public static void main(String[] args) {
+        Solver solver = new Solver();
+        IntVar cost = VariableFactory.bounded("cost", 0, 100000, solver);
+        int nodes = 10;
+        int[][] costs = new int[nodes][nodes];
+        UndirectedGraph graphLowerBound = new UndirectedGraph(solver, nodes, SetType.LINKED_LIST, true);
+        UndirectedGraph graphUpperBound = new UndirectedGraph(solver, nodes, SetType.BIPARTITESET, true);
+        //every node will have degree 1
+        for (int i = 0; i < nodes; i++) {
+            for (int j = i; j < nodes; j++) {
+                graphUpperBound.addEdge(i, j);
+                costs[i][j] = i;
+                costs[j][i] = i;
+            }
+        }
+        IUndirectedGraphVar graph = GraphVarFactory.undirected_graph_var("g", graphLowerBound, graphUpperBound, solver);
+        IntVar[] degrees = VariableFactory.integerArray("degrees", nodes, 1, 1, solver);
+        System.out.println(degrees);
+        System.out.println(degrees[0].getLB());
+        System.out.println(degrees[0].getUB());
+
+        //solver.post(GraphConstraintFactory.degrees(graph, degrees));
+        //solver.post(new Constraint("Edge-cost", new Propagator[]{new PropTreeCostSimple(graph, cost, costs)}));
+        //solver.post(GraphConstraintFactory.tsp(graph, cost, costs, 0));
+        Propagator[] props = new Propagator[]{
+                //new EdgeWeightConstraint(graph, cost, costs, nodes),
+                new PropNodeDegree_Var(graph, degrees),
+                new PropTreeCostSimple(graph, cost, costs),
+        };
+        solver.post(new Constraint("Edge-cost", props));
+        //solver.post(new Constraint("Edge-cost", new Propagator[]{new EdgeWeightConstraint(graph, cost, costs, nodes)}));
+        solver.set(GraphStrategyFactory.lexico(graph));
+        Chatterbox.showSolutions(solver);
+        //solver.findSolution();
+        solver.findOptimalSolution(ResolutionPolicy.MINIMIZE, cost);
+        System.out.println("Is feasible: " + solver.isFeasible());
+        System.out.println("Is satisfied: " + solver.isSatisfied());
+        Chatterbox.printStatistics(solver);
+        System.out.println(graph.isInstantiated());
+        System.out.println(cost.isInstantiated());
+        System.out.println(cost);
+    }
+    /*
+    public static void main(String[] args) {
+        Solver solver = new Solver();
+        IntVar cost = VariableFactory.integer("cost", 0, 1000, solver);
+        IntVar[] costs = VariableFactory.integerArray("costs", 2, 0, 1000, solver);
+        SetVar set = VariableFactory.set("test", new int[]{10,8}, solver);
+        SetConstraintsFactory.int_channel(new SetVar[]{set}, costs, 0, 0);
+        IntConstraintFactory.sum(new IntVar[]{VariableFactory.fixed(7, solver), VariableFactory.fixed(3, solver)}, cost);
+        //SetConstraintsFactory.sum(set, cost, true);
+        //SetConstraintsFactory.sum(set, new int[]{7,4}, 0, cost, true);
+        //solver.post(SetConstraintsFactory.cardinality(set, VariableFactory.fixed(1, solver)));
+        //solver.post(new Constraint("Edge-cost", new Propagator[]{new EdgeWeightConstraint(graph, cost, costs, nodes)}));
+        Chatterbox.showSolutions(solver);
+        //solver.findSolution();
+        solver.findOptimalSolution(ResolutionPolicy.MINIMIZE, cost);
+        System.out.println("Is feasible: " + solver.isFeasible());
+        System.out.println("Is satisfied: " + solver.isSatisfied());
+        Chatterbox.printStatistics(solver);
+    }
+     */
 }
