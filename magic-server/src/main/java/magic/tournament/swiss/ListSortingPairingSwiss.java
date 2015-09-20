@@ -22,11 +22,9 @@ import magic.data.Pairing;
 import magic.data.Player;
 import magic.tournament.TieBreakers;
 
-public class ListSortingPairingSwiss {
+public class ListSortingPairingSwiss implements SwissPairingCalculator {
 
-    private ListSortingPairingSwiss(String tournamentId, int numberOfRounds, Collection<Player> players) {
-        throw new UnsupportedOperationException("Not intended for instantiation.");
-    }
+    public ListSortingPairingSwiss() { }
 
     private static void disallowRepairing(Solver solver, Map<Player, IntVar> playerVariables, Multimap<Player, Player> alreadyMatched) {
         for (Map.Entry<Player, IntVar> playerAndVariable : playerVariables.entrySet()) {
@@ -38,7 +36,7 @@ public class ListSortingPairingSwiss {
     }
 
     private static Map<Player, IntVar> createPlayerVariables(Solver solver, Multimap<Integer, Player> playersAtEachPointLevel,
-                                                      Optional<Map<Player, TieBreakers>> tieBreakers) {
+                                                             Optional<Map<Player, TieBreakers>> tieBreakers) {
         Map<Player, IntVar> result = Maps.newHashMap();
         int rangeStart = 0;
         for (Integer pointLevel : playersAtEachPointLevel.keySet()) {
@@ -50,7 +48,7 @@ public class ListSortingPairingSwiss {
     }
 
     private static Map<Player, IntVar> createOneTierOfPlayers(Solver solver, int rangeStart, int rangeEnd,
-                                                       Collection<Player> playersInTier, Optional<Map<Player, TieBreakers>> tieBreakers) {
+                                                              Collection<Player> playersInTier, Optional<Map<Player, TieBreakers>> tieBreakers) {
         // must be shuffled to ensure a random result each time this is run unless we are on the last round
         List<Player> shuffledPlayers = Lists.newArrayList(playersInTier);
         if (tieBreakers.isPresent()) {
@@ -90,11 +88,12 @@ public class ListSortingPairingSwiss {
         return VariableFactory.bounded(String.valueOf(playerId), rangeStart, rangeEnd - 1, solver);
     }
 
-    /* package */ static NavigableSet<Pairing> innerCalculatePairings(
-            Multimap<Integer, Player> playersAtEachPointLevel,
-            Optional<Map<Player, TieBreakers>> tieBreakers,
-            Map<Player, Integer> pointsPerPlayer,
-            Multimap<Player, Player> alreadyMatched) {
+    @Override
+    public NavigableSet<Pairing> innerCalculatePairings(
+                                                        Multimap<Integer, Player> playersAtEachPointLevel,
+                                                        Optional<Map<Player, TieBreakers>> tieBreakers,
+                                                        Map<Player, Integer> pointsPerPlayer,
+                                                        Multimap<Player, Player> alreadyMatched) {
         Solver solver = new Solver();
         Map<Player, IntVar> playerVariables = createPlayerVariables(solver, playersAtEachPointLevel, tieBreakers);
         disallowRepairing(solver, playerVariables, alreadyMatched);

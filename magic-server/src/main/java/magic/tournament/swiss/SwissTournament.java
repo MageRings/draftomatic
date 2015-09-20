@@ -15,14 +15,25 @@ import magic.tournament.TieBreakers;
 
 public class SwissTournament extends AbstractTournament {
 
-    public SwissTournament(String tournamentId, Optional<Integer> numberOfRounds, Collection<Player> inputPlayers) {
-        super(tournamentId, numberOfRounds.isPresent() ? numberOfRounds.get() : getDefaultNumberOfRounds(inputPlayers.size()), inputPlayers);
+    private final SwissPairingCalculator calculator;
+
+    public SwissTournament(String tournamentId,
+                           Optional<Integer> numberOfRounds,
+                           Collection<Player> inputPlayers,
+                           SwissPairingCalculator calculator) {
+        super(
+                tournamentId,
+                numberOfRounds.isPresent() ? numberOfRounds.get() : getDefaultNumberOfRounds(inputPlayers.size()),
+                    inputPlayers);
+        this.calculator = calculator;
     }
 
     @Override
     protected NavigableSet<Pairing> innerCalculatePairings(Multimap<Integer, Player> playersAtEachPointLevel,
-            Optional<Map<Player, TieBreakers>> tieBreakers, Map<Player, Integer> pointsPerPlayer, Multimap<Player, Player> alreadyMatched) {
-        return ListSortingPairingSwiss.innerCalculatePairings(playersAtEachPointLevel, tieBreakers, pointsPerPlayer, alreadyMatched);
+                                                           Optional<Map<Player, TieBreakers>> tieBreakers,
+                                                           Map<Player, Integer> pointsPerPlayer,
+                                                           Multimap<Player, Player> alreadyMatched) {
+        return calculator.innerCalculatePairings(playersAtEachPointLevel, tieBreakers, pointsPerPlayer, alreadyMatched);
     }
 
     @VisibleForTesting
