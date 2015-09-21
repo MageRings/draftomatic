@@ -11,11 +11,17 @@ public class Match implements Comparable<Match> {
 
     private final Pairing pairing;
     private final Result result;
+    private final boolean p1Drop;
+    private final boolean p2Drop;
 
     public Match(@JsonProperty("pairing") Pairing pairing,
-            @JsonProperty("result") Result result) {
+                 @JsonProperty("result") Result result,
+                 @JsonProperty("p1Drop") boolean p1Drop,
+                 @JsonProperty("p2Drop") boolean p2Drop) {
         this.pairing = pairing;
         this.result = result;
+        this.p1Drop = p1Drop;
+        this.p2Drop = p2Drop;
     }
 
     public Pairing getPairing() {
@@ -26,12 +32,22 @@ public class Match implements Comparable<Match> {
         return result;
     }
 
+    public boolean isP1Drop() {
+        return p1Drop;
+    }
+
+    public boolean isP2Drop() {
+        return p2Drop;
+    }
+
     @JsonIgnore
     public int getGamePointsForPlayer(Player player) {
         if (pairing.isPlayer1(player)) {
-            return result.getP1Wins() * POINTS_FOR_MATCH_WIN + result.getP2Wins() * POINTS_FOR_MATCH_LOSS + result.getDraws() * POINTS_FOR_MATCH_DRAW;
+            return result.getP1Wins() * POINTS_FOR_MATCH_WIN + result.getP2Wins() * POINTS_FOR_MATCH_LOSS
+                    + result.getDraws() * POINTS_FOR_MATCH_DRAW;
         } else {
-            return result.getP2Wins() * POINTS_FOR_MATCH_WIN + result.getP1Wins() * POINTS_FOR_MATCH_LOSS + result.getDraws() * POINTS_FOR_MATCH_DRAW;
+            return result.getP2Wins() * POINTS_FOR_MATCH_WIN + result.getP1Wins() * POINTS_FOR_MATCH_LOSS
+                    + result.getDraws() * POINTS_FOR_MATCH_DRAW;
         }
     }
 
@@ -39,17 +55,25 @@ public class Match implements Comparable<Match> {
     public int getPointsForPlayer(Player player) {
         if (pairing.isPlayer1(player)) {
             switch (result.determineOutcome()) {
-            case P1_WIN: return POINTS_FOR_MATCH_WIN;
-            case P1_LOSS: return POINTS_FOR_MATCH_LOSS;
-            case DRAW: return POINTS_FOR_MATCH_DRAW;
-            default: throw new IllegalStateException();
+            case P1_WIN:
+                return POINTS_FOR_MATCH_WIN;
+            case P1_LOSS:
+                return POINTS_FOR_MATCH_LOSS;
+            case DRAW:
+                return POINTS_FOR_MATCH_DRAW;
+            default:
+                throw new IllegalStateException();
             }
         } else {
             switch (result.determineOutcome()) {
-            case P1_WIN: return POINTS_FOR_MATCH_LOSS;
-            case P1_LOSS: return POINTS_FOR_MATCH_WIN;
-            case DRAW: return POINTS_FOR_MATCH_DRAW;
-            default: throw new IllegalStateException();
+            case P1_WIN:
+                return POINTS_FOR_MATCH_LOSS;
+            case P1_LOSS:
+                return POINTS_FOR_MATCH_WIN;
+            case DRAW:
+                return POINTS_FOR_MATCH_DRAW;
+            default:
+                throw new IllegalStateException();
             }
         }
     }
@@ -68,13 +92,15 @@ public class Match implements Comparable<Match> {
 
     @Override
     public String toString() {
-        return "Match [pairing=" + pairing + ", result=" + result + "]";
+        return "Match [pairing=" + pairing + ", result=" + result + ", p1Drop=" + p1Drop + ", p2Drop=" + p2Drop + "]";
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + (p1Drop ? 1231 : 1237);
+        result = prime * result + (p2Drop ? 1231 : 1237);
         result = prime * result + ((pairing == null) ? 0 : pairing.hashCode());
         result = prime * result + ((this.result == null) ? 0 : this.result.hashCode());
         return result;
@@ -92,6 +118,12 @@ public class Match implements Comparable<Match> {
             return false;
         }
         Match other = (Match) obj;
+        if (p1Drop != other.p1Drop) {
+            return false;
+        }
+        if (p2Drop != other.p2Drop) {
+            return false;
+        }
         if (pairing == null) {
             if (other.pairing != null) {
                 return false;

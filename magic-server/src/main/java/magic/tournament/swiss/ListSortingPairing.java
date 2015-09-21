@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
-import java.util.Optional;
-
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.constraints.ICF;
@@ -20,13 +18,15 @@ import com.google.common.collect.Sets;
 
 import magic.data.Pairing;
 import magic.data.Player;
-import magic.tournament.TieBreakers;
 
-public class ListSortingPairingSwiss implements SwissPairingCalculator {
+public class ListSortingPairing implements SwissPairingCalculator {
 
-    public ListSortingPairingSwiss() { }
+    public ListSortingPairing() {
+    }
 
-    private static void disallowRepairing(Solver solver, Map<Player, IntVar> playerVariables, Multimap<Player, Player> alreadyMatched) {
+    private static void disallowRepairing(Solver solver,
+                                          Map<Player, IntVar> playerVariables,
+                                          Multimap<Player, Player> alreadyMatched) {
         for (Map.Entry<Player, IntVar> playerAndVariable : playerVariables.entrySet()) {
             for (Player other : alreadyMatched.get(playerAndVariable.getKey())) {
                 Constraint constraint = cannotPlayAgain(playerAndVariable.getValue(), playerVariables.get(other));
@@ -35,36 +35,37 @@ public class ListSortingPairingSwiss implements SwissPairingCalculator {
         }
     }
 
-    private static Map<Player, IntVar> createPlayerVariables(Solver solver, Multimap<Integer, Player> playersAtEachPointLevel,
-                                                             Optional<Map<Player, TieBreakers>> tieBreakers) {
+    private static Map<Player, IntVar> createPlayerVariables(Solver solver,
+                                                             Multimap<Integer, Player> playersAtEachPointLevel,
+                                                             Map<Player, Integer> playerRankings) {
         Map<Player, IntVar> result = Maps.newHashMap();
         int rangeStart = 0;
         for (Integer pointLevel : playersAtEachPointLevel.keySet()) {
             Collection<Player> players = playersAtEachPointLevel.get(pointLevel);
-            result.putAll(createOneTierOfPlayers(solver, rangeStart, rangeStart + players.size(), players, tieBreakers));
+            result.putAll(
+                    createOneTierOfPlayers(solver, rangeStart, rangeStart + players.size(), players, playerRankings));
             rangeStart += players.size();
         }
         return result;
     }
 
-    private static Map<Player, IntVar> createOneTierOfPlayers(Solver solver, int rangeStart, int rangeEnd,
-                                                              Collection<Player> playersInTier, Optional<Map<Player, TieBreakers>> tieBreakers) {
-        // must be shuffled to ensure a random result each time this is run unless we are on the last round
-        List<Player> shuffledPlayers = Lists.newArrayList(playersInTier);
-        if (tieBreakers.isPresent()) {
-            Collections.sort(shuffledPlayers, (a , b) -> tieBreakers.get().get(a).compareTo(tieBreakers.get().get(b)));
-        } else {
-            Collections.shuffle(shuffledPlayers);
-        }
+    private static Map<Player, IntVar> createOneTierOfPlayers(Solver solver,
+                                                              int rangeStart,
+                                                              int rangeEnd,
+                                                              Collection<Player> playersInTier,
+                                                              Map<Player, Integer> playerRankings) {
+        List<Player> rankedPlayers = Lists.newArrayList(playersInTier);
+        Collections.sort(rankedPlayers, (a, b) -> playerRankings.get(a).compareTo(playerRankings.get(b)));
         Map<Player, IntVar> result = Maps.newHashMap();
-        for (int i = 0; i < shuffledPlayers.size(); i++) {
-            result.put(shuffledPlayers.get(i), createPlayerVariable(solver, i, rangeStart, rangeEnd));
+        for (int i = 0; i < rankedPlayers.size(); i++) {
+            result.put(rankedPlayers.get(i), createPlayerVariable(solver, i, rangeStart, rangeEnd));
         }
         return result;
     }
 
     // sort pairings by combined points of two players
-    private static NavigableSet<Pairing> solutionToPairings(Map<Player, IntVar> playerVariables, Map<Player, Integer> pointsPerPlayer) {
+    private static NavigableSet<Pairing> solutionToPairings(Map<Player, IntVar> playerVariables,
+                                                            Map<Player, Integer> pointsPerPlayer) {
         Player[] sortedPlayers = new Player[playerVariables.size()];
         for (Map.Entry<Player, IntVar> entry : playerVariables.entrySet()) {
             sortedPlayers[entry.getValue().getValue()] = entry.getKey();
@@ -91,11 +92,11 @@ public class ListSortingPairingSwiss implements SwissPairingCalculator {
     @Override
     public NavigableSet<Pairing> innerCalculatePairings(
                                                         Multimap<Integer, Player> playersAtEachPointLevel,
-                                                        Optional<Map<Player, TieBreakers>> tieBreakers,
+                                                        Map<Player, Integer> playerRankings,
                                                         Map<Player, Integer> pointsPerPlayer,
                                                         Multimap<Player, Player> alreadyMatched) {
         Solver solver = new Solver();
-        Map<Player, IntVar> playerVariables = createPlayerVariables(solver, playersAtEachPointLevel, tieBreakers);
+        Map<Player, IntVar> playerVariables = createPlayerVariables(solver, playersAtEachPointLevel, playerRankings);
         disallowRepairing(solver, playerVariables, alreadyMatched);
         solver.post(ICF.alldifferent(playerVariables.values().toArray(new IntVar[0])));
         if (!solver.findSolution()) {

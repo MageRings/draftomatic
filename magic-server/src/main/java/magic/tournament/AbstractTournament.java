@@ -12,12 +12,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.chocosolver.solver.ResolutionPolicy;
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
-import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.solver.variables.VariableFactory;
-
-import org.chocosolver.solver.ResolutionPolicy;
 import org.chocosolver.solver.constraints.Propagator;
 import org.chocosolver.solver.cstrs.cost.trees.PropTreeCostSimple;
 import org.chocosolver.solver.cstrs.degree.PropNodeDegree_Var;
@@ -25,6 +22,8 @@ import org.chocosolver.solver.search.GraphStrategyFactory;
 import org.chocosolver.solver.trace.Chatterbox;
 import org.chocosolver.solver.variables.GraphVarFactory;
 import org.chocosolver.solver.variables.IUndirectedGraphVar;
+import org.chocosolver.solver.variables.IntVar;
+import org.chocosolver.solver.variables.VariableFactory;
 import org.chocosolver.util.objects.graphs.UndirectedGraph;
 import org.chocosolver.util.objects.setDataStructures.SetType;
 
@@ -69,6 +68,14 @@ public abstract class AbstractTournament implements Tournament {
     private Round getRound(int roundNum) {
         NavigableSet<Match> matches = Sets.newTreeSet(overallResults.get(roundNum).values());
         return new Round(roundNum, matches, isComplete || roundNum != currentRound);
+    }
+
+    protected String getTournamentId() {
+        return tournamentId;
+    }
+
+    protected int getCurrentRound() {
+        return currentRound;
     }
 
     @Override
@@ -122,7 +129,7 @@ public abstract class AbstractTournament implements Tournament {
         for (Match m : thisRoundResults) {
             Match resultToRecord = m;
             if (m.getPairing().isBye()) {
-                resultToRecord = new Match(m.getPairing(), new Result(0, 2, 0));
+                resultToRecord = new Match(m.getPairing(), new Result(0, 2, 0), false, false);
             }
             newResultEntry.put(m.getPairing().getPlayer1(), resultToRecord);
             newResultEntry.put(m.getPairing().getPlayer2(), resultToRecord);
@@ -143,7 +150,8 @@ public abstract class AbstractTournament implements Tournament {
     private synchronized NavigableSet<Match> getPairings() {
         NavigableSet<Pairing> pairings = calculatePairings(overallResults.values(), currentRound == numberOfRounds);
         NavigableSet<Match> matches = Sets.newTreeSet(
-                pairings.stream().map(pairing -> new Match(pairing, Result.INCOMPLETE)).collect(Collectors.toSet()));
+                pairings.stream().map(pairing -> new Match(pairing, Result.INCOMPLETE, false, false)).collect(
+                        Collectors.toSet()));
         Map<Player, Match> tmp = Maps.newHashMap();
         for (Match m : matches) {
             tmp.put(m.getPairing().getPlayer1(), m);
@@ -157,8 +165,8 @@ public abstract class AbstractTournament implements Tournament {
         return results.stream().collect(
                 HashMap::new,
                 (map, resultPerPlayer) -> resultPerPlayer.entrySet()
-                .stream()
-                .forEach(entry -> map.put(entry.getKey(), entry.getValue().getPointsForPlayer(entry.getKey()))),
+                        .stream()
+                        .forEach(entry -> map.put(entry.getKey(), entry.getValue().getPointsForPlayer(entry.getKey()))),
                 (finalMap, map) -> map.forEach((k, v) -> finalMap.merge(k, v, Integer::sum)));
     }
 
@@ -182,8 +190,8 @@ public abstract class AbstractTournament implements Tournament {
                 Multimaps.forMap(pointsPerPlayer),
                 HashMultimap.<Integer, Player> create());
         Optional<Map<Player, TieBreakers>> tieBreakers = Optional.empty();
-        if (lastRound && results.size() > 0) { // edge case for two-player tournaments. have to make
-            // sure that there is some history
+        // edge case for two-player tournaments. have to make sure that there is some history
+        if (lastRound && results.size() > 0) {
             tieBreakers = Optional.of(TieBreakers.getTieBreakers(results, pointsPerPlayer, tournamentId));
         }
         return innerCalculatePairings(playersAtEachPointLevel, tieBreakers, pointsPerPlayer, alreadyMatched);
@@ -202,6 +210,10 @@ public abstract class AbstractTournament implements Tournament {
         TreeSet<TieBreakers> a =
                 Sets.newTreeSet(TieBreakers.getTieBreakers(truncatedResults, pointsPerPlayer, tournamentId).values());
         return a;
+    }
+
+    protected ConcurrentNavigableMap<Integer, Map<Player, Match>> getOverallResults() {
+        return overallResults;
     }
 
     @Override
@@ -297,6 +309,7 @@ public abstract class AbstractTournament implements Tournament {
         System.out.println(graph.isInstantiated());
         System.out.println(cost.isInstantiated());
         System.out.println(cost);
+        System.out.println(graph.getPotNeighOf(1));
     }
     /*
      * public static void main(String[] args) { Solver solver = new Solver(); IntVar cost =
