@@ -5,8 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
@@ -16,11 +16,12 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.Maps;
 import com.google.common.io.BaseEncoding;
 
 import magic.data.Match;
 import magic.data.Player;
+import magic.data.Round;
 
 public class TieBreakers implements Comparable<TieBreakers> {
 
@@ -41,9 +42,9 @@ public class TieBreakers implements Comparable<TieBreakers> {
     private final double opponentGameWinPercentage;
     private final String finalTiebreaker;
 
-    public static Map<Player, TieBreakers> getTieBreakers(Collection<Map<Player, Match>> results,
-                                                          Map<Player, Integer> pointsPerPlayer,
+    public static Map<Player, TieBreakers> getTieBreakers(Collection<Round> results,
                                                           String tournamentId) {
+        Map<Player, Integer> pointsPerPlayer = calculatePointsPerPlayer(results);
         Map<Player, Collection<Match>> flatResults = getFlatResults(results);
         Map<Player, Double> opponentMatchWinPercentages = calculateOpponentWinPercentages(
                 flatResults,
@@ -63,14 +64,28 @@ public class TieBreakers implements Comparable<TieBreakers> {
                         opponentMatchWinPercentages.get(player),
                         playerGameWinPercentages.get(player),
                         opponentGameWinPercentages.get(player),
-                        generateRandomTieBreaker(tournamentId, player.getId(), Optional.<Integer>empty()))));
+                        generateRandomTieBreaker(tournamentId, player.getId(), Optional.<Integer> empty()))));
+    }
+
+    private static Map<Player, Integer> calculatePointsPerPlayer(Collection<Round> results) {
+        Map<Player, Integer> pointsPerPlayer = Maps.newHashMap();
+        results.stream().filter(r -> r.isComplete()).forEach(r -> {
+            r.getMatches().forEach(m -> {
+                Player player1 = m.getPairing().getPlayer1();
+                Player player2 = m.getPairing().getPlayer2();
+                pointsPerPlayer.merge(player1, m.getPointsForPlayer(player1), Integer::sum);
+                pointsPerPlayer.merge(player2, m.getPointsForPlayer(player2), Integer::sum);
+            });
+        });
+        return pointsPerPlayer;
     }
 
     /**
      * Creates a value that is intended to be compared against similarly generated values to ensure
-     * that each round is paired (pseudo)random but deterministic opponent in each round.  Each
-     * input is a parameter for which the output should be unique.  The round is not a factor
-     * in the tiebreaker for the final standings.
+     * that each round is paired (pseudo)random but deterministic opponent in each round. Each input
+     * is a parameter for which the output should be unique. The round is not a factor in the
+     * tiebreaker for the final standings.
+     *
      * @param tournamentId
      * @param playerId
      * @param round
@@ -145,17 +160,21 @@ public class TieBreakers implements Comparable<TieBreakers> {
         return finalTiebreaker.compareTo(other.finalTiebreaker);
     }
 
-    public static Map<Player, Collection<Match>> getFlatResults(Collection<Map<Player, Match>> results) {
+    public static Map<Player, Collection<Match>> getFlatResults(Collection<Round> results) {
         return results.stream().collect(
                 HashMultimap::<Player, Match> create,
-                (map, resultsPerPlayer) -> map.putAll(Multimaps.forMap(resultsPerPlayer)),
+                (map, round) -> {
+                    round.getMatches().forEach(m -> {
+                        map.put(m.getPairing().getPlayer1(), m);
+                        map.put(m.getPairing().getPlayer2(), m);
+                    });
+                } ,
                 (finalMap, map) -> finalMap.putAll(map)).asMap();
     }
 
     @VisibleForTesting
-    /* package */ static Map<Player, Double>
-    calculatePlayerMatchWinPercentages(Map<Player, Collection<Match>> flatResults,
-                                       Map<Player, Integer> pointsPerPlayer) {
+    /* package */ static Map<Player, Double> calculatePlayerMatchWinPercentages(Map<Player, Collection<Match>> flatResults,
+                                                                                Map<Player, Integer> pointsPerPlayer) {
         return flatResults.entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> {
             if (entry.getValue().size() == 0) {
                 return MINIMUM_MATCH_WIN_PERCENTAGE;
@@ -167,8 +186,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
     }
 
     @VisibleForTesting
-    /* package */ static Map<Player, Double>
-    calculatePlayerGameWinPercentages(Map<Player, Collection<Match>> flatResults) {
+    /* package */ static Map<Player, Double> calculatePlayerGameWinPercentages(Map<Player, Collection<Match>> flatResults) {
         return flatResults.entrySet().stream().collect(Collectors.toMap(Entry::getKey, resultsPerPlayer -> {
             Player player = resultsPerPlayer.getKey();
             int games = resultsPerPlayer.getValue()

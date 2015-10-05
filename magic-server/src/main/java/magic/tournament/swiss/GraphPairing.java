@@ -1,9 +1,9 @@
 package magic.tournament.swiss;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
+import java.util.Set;
 
 import org.chocosolver.solver.ResolutionPolicy;
 import org.chocosolver.solver.Solver;
@@ -18,9 +18,9 @@ import org.chocosolver.solver.variables.IUndirectedGraphVar;
 import org.chocosolver.solver.variables.IntVar;
 import org.chocosolver.solver.variables.VariableFactory;
 import org.chocosolver.util.objects.graphs.UndirectedGraph;
+import org.chocosolver.util.objects.setDataStructures.ISet;
 import org.chocosolver.util.objects.setDataStructures.SetType;
 
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import magic.data.Pairing;
@@ -41,38 +41,13 @@ public class GraphPairing implements SwissPairingCalculator {
      *
      * @return
      */
-    private static int[][] determineEdgeWeights(Multimap<Integer, Player> playersAtEachPointLevel,
-                                                NavigableMap<Player, Integer> playerRankings,
-                                                Multimap<Player, Player> alreadyMatched) {
-        int[][] weights = new int[playerRankings.size()][playerRankings.size()];
-        Player[] players = new Player[playerRankings.size()];
-        playerRankings.navigableKeySet().toArray(players);
-        NavigableMap<Integer, Integer> numberOfPlayersPerPointTier = playersAtEachPointLevel.asMap()
-                .entrySet()
-                .stream()
-                .collect(MapCollectorUtils.toNavMap(e -> e.getKey(), e -> e.getValue().size()));
-        Map<Player, Integer> pointsPerPlayer = playersAtEachPointLevel.asMap()
-                .entrySet()
-                .stream()
-                .collect(
-                        HashMap::new,
-                        (map, pointAndPlayers) -> {
-                            pointAndPlayers.getValue()
-                                    .stream()
-                                    .forEach(player -> map.put(player, pointAndPlayers.getKey()));
-                            return;
-                        } ,
-                        Map::putAll);
-        for (int i = 0; i < playerRankings.size(); i++) {
+    private static int[][] determineEdgeWeights(TournamentState state) {
+        int[][] weights = new int[state.getNumberOfPlayers()][state.getNumberOfPlayers()];
+        Player[] players = state.getRankedPlayers();
+        for (int i = 0; i < players.length; i++) {
             // we don't assign a cost for self-pairings because these are not possible anyways
-            for (int j = i + 1; j < playerRankings.size(); j++) {
-                int weight = determineSingleEdgeWeight(
-                        players[i],
-                        players[j],
-                        numberOfPlayersPerPointTier,
-                        pointsPerPlayer,
-                        playerRankings,
-                        alreadyMatched);
+            for (int j = i + 1; j < players.length; j++) {
+                int weight = determineSingleEdgeWeight(players[i], players[j], state);
                 weights[i][j] = weight;
                 weights[j][i] = weight;
             }
@@ -83,18 +58,20 @@ public class GraphPairing implements SwissPairingCalculator {
     // TODO(btoth): have to watch out for overflow here with larger tournaments
     private static int determineSingleEdgeWeight(Player player1,
                                                  Player player2,
-                                                 NavigableMap<Integer, Integer> numberOfPlayersPerPointTier,
-                                                 Map<Player, Integer> pointsPerPlayer,
-                                                 Map<Player, Integer> playerRankings,
-                                                 Multimap<Player, Player> alreadyMatched) {
+                                                 TournamentState state) {
         int weight = 0;
-        if (alreadyMatched.containsEntry(player1, player2)) {
+        if (state.getRoundData().get(player1).getAlreadyMatched().contains(player2)) {
             // first check to see if they were already matched
-            weight = 2 * playerRankings.keySet().size();
+            weight = 2 * state.getNumberOfPlayers();
         }
-        // then check add points for each tier apart
-        int p1Points = pointsPerPlayer.get(player1);
-        int p2Points = pointsPerPlayer.get(player2);
+        // then add points equal to the size of each tier separating the players
+        int p1Points = state.getRoundData().get(player1).getPoints();
+        int p2Points = state.getRoundData().get(player2).getPoints();
+        NavigableMap<Integer, Integer> numberOfPlayersPerPointTier =
+                state.getPlayersAtEachPointLevel()
+                        .entrySet()
+                        .stream()
+                        .collect(MapCollectorUtils.toNavMap(Entry::getKey, e -> e.getValue().size()));
         NavigableMap<Integer, Integer> tiersToConsider;
         if (p1Points > p2Points) {
             tiersToConsider = (NavigableMap<Integer, Integer>) numberOfPlayersPerPointTier.subMap(p2Points, p1Points);
@@ -105,24 +82,41 @@ public class GraphPairing implements SwissPairingCalculator {
             weight += numPlayers;
         }
         // always add a delta to ensure consistent results
-        weight += Math.abs(playerRankings.get(player1) - playerRankings.get(player2));
+        weight += Math.abs(state.getRoundData().get(player1).getRanking() -
+                state.getRoundData().get(player2).getRanking());
         return weight;
     }
 
-    @Override
-    public NavigableSet<Pairing> innerCalculatePairings(Multimap<Integer, Player> playersAtEachPointLevel,
-                                                        NavigableMap<Player, Integer> playerRankings,
-                                                        Map<Player, Integer> pointsPerPlayer,
-                                                        Multimap<Player, Player> alreadyMatched) {
+    private static NavigableSet<Pairing> hydratePairingsFromResult(IUndirectedGraphVar g, TournamentState state) {
         NavigableSet<Pairing> result = Sets.newTreeSet();
-        int[][] edgeWeights = determineEdgeWeights(playersAtEachPointLevel, playerRankings, alreadyMatched);
-        int numPlayers = playerRankings.size();
+        Set<Player> playersPaired = Sets.newHashSet();
+        ISet nodes = g.getMandatoryNodes();
+        Player[] players = state.getRankedPlayers();
+        for (int i = nodes.getFirstElement(); i >= 0; i = nodes.getNextElement()) {
+            Player player1 = players[i];
+            if (playersPaired.contains(player1)) {
+                continue;
+            }
+            playersPaired.add(player1);
+            Player player2 = players[g.getMandNeighOf(i).getFirstElement()];
+            int totalPoints =
+                    state.getRoundData().get(player1).getPoints() + state.getRoundData().get(player2).getPoints();
+            result.add(new Pairing(player1, player2, totalPoints));
+        }
+        return result;
+    }
+
+    @Override
+    public NavigableSet<Pairing> innerCalculatePairings(TournamentState state) {
+        int[][] edgeWeights = determineEdgeWeights(state);
+        int numPlayers = state.getNumberOfPlayers();
         Solver solver = new Solver();
-        IntVar cost = VariableFactory.bounded("cost", 0, Integer.MAX_VALUE - 1, solver);
+        IntVar cost = VariableFactory.bounded("cost", 0, VariableFactory.MAX_INT_BOUND, solver);
         UndirectedGraph graphLowerBound = new UndirectedGraph(solver, numPlayers, SetType.LINKED_LIST, true);
         UndirectedGraph graphUpperBound = new UndirectedGraph(solver, numPlayers, SetType.BIPARTITESET, true);
         for (int i = 0; i < numPlayers; i++) {
             for (int j = i + 1; j < numPlayers; j++) {
+                // avoid adding self-edges
                 graphUpperBound.addEdge(i, j);
             }
         }
@@ -130,7 +124,6 @@ public class GraphPairing implements SwissPairingCalculator {
         IntVar[] degrees = VariableFactory.integerArray("degrees", numPlayers, 1, 1, solver);
 
         Propagator[] props = new Propagator[] {
-                // new EdgeWeightConstraint(graph, cost, costs, nodes),
                 new PropNodeDegree_Var(graph, degrees),
                 new PropTreeCostSimple(graph, cost, edgeWeights),
         };
@@ -138,6 +131,8 @@ public class GraphPairing implements SwissPairingCalculator {
         solver.set(GraphStrategyFactory.lexico(graph));
         Chatterbox.showSolutions(solver);
         solver.findOptimalSolution(ResolutionPolicy.MINIMIZE, cost);
+
+        return hydratePairingsFromResult(graph, state);
     }
 
 }

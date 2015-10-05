@@ -13,7 +13,6 @@ import org.chocosolver.solver.variables.VariableFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import magic.data.Pairing;
@@ -26,7 +25,7 @@ public class ListSortingPairing implements SwissPairingCalculator {
 
     private static void disallowRepairing(Solver solver,
                                           Map<Player, IntVar> playerVariables,
-                                          Multimap<Player, Player> alreadyMatched) {
+                                          Map<Player, Collection<Player>> alreadyMatched) {
         for (Map.Entry<Player, IntVar> playerAndVariable : playerVariables.entrySet()) {
             for (Player other : alreadyMatched.get(playerAndVariable.getKey())) {
                 Constraint constraint = cannotPlayAgain(playerAndVariable.getValue(), playerVariables.get(other));
@@ -36,12 +35,11 @@ public class ListSortingPairing implements SwissPairingCalculator {
     }
 
     private static Map<Player, IntVar> createPlayerVariables(Solver solver,
-                                                             Multimap<Integer, Player> playersAtEachPointLevel,
+                                                             Map<Integer, List<Player>> playersAtEachPointLevel,
                                                              Map<Player, Integer> playerRankings) {
         Map<Player, IntVar> result = Maps.newHashMap();
         int rangeStart = 0;
-        for (Integer pointLevel : playersAtEachPointLevel.keySet()) {
-            Collection<Player> players = playersAtEachPointLevel.get(pointLevel);
+        for (Collection<Player> players : playersAtEachPointLevel.values()) {
             result.putAll(
                     createOneTierOfPlayers(solver, rangeStart, rangeStart + players.size(), players, playerRankings));
             rangeStart += players.size();
@@ -90,18 +88,16 @@ public class ListSortingPairing implements SwissPairingCalculator {
     }
 
     @Override
-    public NavigableSet<Pairing> innerCalculatePairings(
-                                                        Multimap<Integer, Player> playersAtEachPointLevel,
-                                                        Map<Player, Integer> playerRankings,
-                                                        Map<Player, Integer> pointsPerPlayer,
-                                                        Multimap<Player, Player> alreadyMatched) {
+    public NavigableSet<Pairing> innerCalculatePairings(TournamentState state,
+                                                        Map<Player, Integer> playerRankings) {
         Solver solver = new Solver();
-        Map<Player, IntVar> playerVariables = createPlayerVariables(solver, playersAtEachPointLevel, playerRankings);
-        disallowRepairing(solver, playerVariables, alreadyMatched);
+        Map<Player, IntVar> playerVariables =
+                createPlayerVariables(solver, state.getPlayersAtEachPointLevel(), playerRankings);
+        disallowRepairing(solver, playerVariables, state.getSinglePurposeMap(d -> d.getAlreadyMatched()));
         solver.post(ICF.alldifferent(playerVariables.values().toArray(new IntVar[0])));
         if (!solver.findSolution()) {
             throw new IllegalStateException("Could not find pairings!");
         }
-        return solutionToPairings(playerVariables, pointsPerPlayer);
+        return solutionToPairings(playerVariables, state.getSinglePurposeMap(d -> d.getPoints()));
     }
 }
