@@ -12,8 +12,8 @@ public class Round implements Comparable<Round> {
 
     public Round(
             @JsonProperty("number") int number,
-            @JsonProperty("matches") NavigableSet<Match> matches,
-            @JsonProperty("complete") boolean complete) {
+            @JsonProperty("complete") boolean complete,
+            @JsonProperty("matches") NavigableSet<Match> matches) {
         this.number = number;
         this.matches = matches;
         this.complete = complete;

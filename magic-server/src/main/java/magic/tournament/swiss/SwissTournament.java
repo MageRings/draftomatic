@@ -2,6 +2,7 @@ package magic.tournament.swiss;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
@@ -10,6 +11,7 @@ import java.util.Optional;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.tournament.AbstractTournament;
@@ -60,11 +62,11 @@ public class SwissTournament extends AbstractTournament {
      * @param tieBreakers
      * @return
      */
-    private static Map<Player, Integer> rankPlayers(int round,
-                                                    String tournamentId,
-                                                    TournamentState state,
-                                                    Optional<Map<Player, TieBreakers>> tieBreakers) {
-        Map<Player, Integer> rankings = Maps.newHashMapWithExpectedSize(state.getNumberOfPlayers());
+    private static LinkedHashMap<Player, Integer> rankPlayers(int round,
+                                                              String tournamentId,
+                                                              TournamentState state,
+                                                              Optional<Map<Player, TieBreakers>> tieBreakers) {
+        LinkedHashMap<Player, Integer> rankings = Maps.newLinkedHashMap();
         List<Player> players = Lists.newArrayList(state.getPlayers());
         // check to see if this is the last round
         if (tieBreakers.isPresent()) {

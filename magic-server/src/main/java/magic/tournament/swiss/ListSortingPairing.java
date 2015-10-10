@@ -2,9 +2,11 @@ package magic.tournament.swiss;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
+
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.constraints.ICF;
@@ -89,7 +91,7 @@ public class ListSortingPairing implements SwissPairingCalculator {
 
     @Override
     public NavigableSet<Pairing> innerCalculatePairings(TournamentState state,
-                                                        Map<Player, Integer> playerRankings) {
+                                                        LinkedHashMap<Player, Integer> playerRankings) {
         Solver solver = new Solver();
         Map<Player, IntVar> playerVariables =
                 createPlayerVariables(solver, state.getPlayersAtEachPointLevel(), playerRankings);

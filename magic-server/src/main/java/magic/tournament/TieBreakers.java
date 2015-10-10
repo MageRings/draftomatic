@@ -25,22 +25,27 @@ import magic.data.Round;
 
 public class TieBreakers implements Comparable<TieBreakers> {
 
-    private static final double MAX_POINTS_PER_GAME = 3.0;
+    private static final double MAX_POINTS_PER_MATCH            = 3.0;
+    private static final double MAX_POINTS_PER_GAME             = MAX_POINTS_PER_MATCH;
     // note that the terminology "match win" and "game win" is used here to be consistent. however
     // "match point" and "game point" are more correct
-    private static final double MINIMUM_MATCH_WIN_PERCENTAGE = .33;
-    private static final double MINIMUM_GAME_WIN_PERCENTAGE = MINIMUM_MATCH_WIN_PERCENTAGE;
+    private static final double MINIMUM_OPPONENT_WIN_PERCENTAGE = .33;
 
     // for the unlikely case that a player plays no games
     private static final double DEFAULT_MATCH_WIN_PERCENTAGE = 0;
-    private static final double DEFAULT_GAME_WIN_PERCENTAGE = DEFAULT_MATCH_WIN_PERCENTAGE;
+    private static final double DEFAULT_GAME_WIN_PERCENTAGE  = DEFAULT_MATCH_WIN_PERCENTAGE;
 
     private final Player player;
-    private final int matchPoints;
+    private final int    matchPoints;
     private final double opponentMatchWinPercentage;
     private final double gameWinPercentage;
     private final double opponentGameWinPercentage;
     private final String finalTiebreaker;
+
+    // arbitrarily deciding to round to five decimal places
+    private static double round(double input) {
+        return Math.round(input * 100000d) / 100000d;
+    }
 
     public static Map<Player, TieBreakers> getTieBreakers(Collection<Round> results,
                                                           String tournamentId) {
@@ -141,7 +146,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
     }
 
     private static final int GREATER = 1;
-    private static final int LESS = -1;
+    private static final int LESS    = -1;
 
     @Override
     public int compareTo(TieBreakers other) {
@@ -160,7 +165,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
         return finalTiebreaker.compareTo(other.finalTiebreaker);
     }
 
-    public static Map<Player, Collection<Match>> getFlatResults(Collection<Round> results) {
+    private static Map<Player, Collection<Match>> getFlatResults(Collection<Round> results) {
         return results.stream().collect(
                 HashMultimap::<Player, Match> create,
                 (map, round) -> {
@@ -177,11 +182,9 @@ public class TieBreakers implements Comparable<TieBreakers> {
                                                                                 Map<Player, Integer> pointsPerPlayer) {
         return flatResults.entrySet().stream().collect(Collectors.toMap(Entry::getKey, entry -> {
             if (entry.getValue().size() == 0) {
-                return MINIMUM_MATCH_WIN_PERCENTAGE;
+                return 0.0;
             }
-            return Math.max(
-                    MINIMUM_MATCH_WIN_PERCENTAGE,
-                    (double) pointsPerPlayer.get(entry.getKey()) / entry.getValue().size());
+            return (double) pointsPerPlayer.get(entry.getKey()) / (entry.getValue().size() * MAX_POINTS_PER_MATCH);
         }));
     }
 
@@ -193,15 +196,16 @@ public class TieBreakers implements Comparable<TieBreakers> {
                     .stream()
                     .reduce(0, (sum, result) -> sum += result.getResult().getNumberOfGames(), Integer::sum);
             if (games == 0) {
-                return MINIMUM_GAME_WIN_PERCENTAGE;
+                return 0.0;
             }
             int wins = resultsPerPlayer.getValue()
                     .stream()
                     .reduce(0, (sum, result) -> sum += result.getGamePointsForPlayer(player), Integer::sum);
-            return Math.max(MINIMUM_GAME_WIN_PERCENTAGE, wins / (games * MAX_POINTS_PER_GAME));
+            return round(wins / (games * MAX_POINTS_PER_GAME));
         }));
     }
 
+    // TODO(brian): is this behavior correct?
     private static Predicate<Match> distinctByOpponent(Player player) {
         ConcurrentSkipListSet<Player> seen = new ConcurrentSkipListSet<>();
         return r -> seen.add(r.getPairing().getOpponent(player));
@@ -216,13 +220,15 @@ public class TieBreakers implements Comparable<TieBreakers> {
                 return defaultResult;
             }
             Player player = resultsPerPlayer.getKey();
-            return resultsPerPlayer.getValue()
+            return round(resultsPerPlayer.getValue()
                     .stream()
                     .filter(distinctByOpponent(player))
                     .filter(r -> !r.getPairing().isBye())
                     .collect(
                             Collectors.averagingDouble(
-                                    result -> playerWinPercentage.get(result.getPairing().getOpponent(player))));
+                                    result -> Math.max(
+                                            MINIMUM_OPPONENT_WIN_PERCENTAGE,
+                                            playerWinPercentage.get(result.getPairing().getOpponent(player))))));
         }));
     }
 

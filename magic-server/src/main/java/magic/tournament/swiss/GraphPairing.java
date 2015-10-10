@@ -1,9 +1,12 @@
 package magic.tournament.swiss;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.chocosolver.solver.ResolutionPolicy;
 import org.chocosolver.solver.Solver;
@@ -12,7 +15,7 @@ import org.chocosolver.solver.constraints.Propagator;
 import org.chocosolver.solver.cstrs.cost.trees.PropTreeCostSimple;
 import org.chocosolver.solver.cstrs.degree.PropNodeDegree_Var;
 import org.chocosolver.solver.search.GraphStrategyFactory;
-import org.chocosolver.solver.trace.Chatterbox;
+import org.chocosolver.solver.search.loop.monitors.IMonitorSolution;
 import org.chocosolver.solver.variables.GraphVarFactory;
 import org.chocosolver.solver.variables.IUndirectedGraphVar;
 import org.chocosolver.solver.variables.IntVar;
@@ -41,13 +44,13 @@ public class GraphPairing implements SwissPairingCalculator {
      *
      * @return
      */
-    private static int[][] determineEdgeWeights(TournamentState state) {
+    private static int[][] determineEdgeWeights(TournamentState state, LinkedHashMap<Player, Integer> playerRankings) {
         int[][] weights = new int[state.getNumberOfPlayers()][state.getNumberOfPlayers()];
-        Player[] players = state.getRankedPlayers();
+        Player[] players = playerRankings.keySet().toArray(new Player[] {});
         for (int i = 0; i < players.length; i++) {
             // we don't assign a cost for self-pairings because these are not possible anyways
             for (int j = i + 1; j < players.length; j++) {
-                int weight = determineSingleEdgeWeight(players[i], players[j], state);
+                int weight = determineSingleEdgeWeight(players[i], players[j], state, playerRankings);
                 weights[i][j] = weight;
                 weights[j][i] = weight;
             }
@@ -58,7 +61,8 @@ public class GraphPairing implements SwissPairingCalculator {
     // TODO(btoth): have to watch out for overflow here with larger tournaments
     private static int determineSingleEdgeWeight(Player player1,
                                                  Player player2,
-                                                 TournamentState state) {
+                                                 TournamentState state,
+                                                 LinkedHashMap<Player, Integer> playerRankings) {
         int weight = 0;
         if (state.getRoundData().get(player1).getAlreadyMatched().contains(player2)) {
             // first check to see if they were already matched
@@ -82,16 +86,17 @@ public class GraphPairing implements SwissPairingCalculator {
             weight += numPlayers;
         }
         // always add a delta to ensure consistent results
-        weight += Math.abs(state.getRoundData().get(player1).getRanking() -
-                state.getRoundData().get(player2).getRanking());
+        weight += Math.abs(playerRankings.get(player1) - playerRankings.get(player2));
         return weight;
     }
 
-    private static NavigableSet<Pairing> hydratePairingsFromResult(IUndirectedGraphVar g, TournamentState state) {
+    private static NavigableSet<Pairing> hydratePairingsFromResult(IUndirectedGraphVar g,
+                                                                   TournamentState state,
+                                                                   Map<Player, Integer> playerRankings) {
         NavigableSet<Pairing> result = Sets.newTreeSet();
         Set<Player> playersPaired = Sets.newHashSet();
         ISet nodes = g.getMandatoryNodes();
-        Player[] players = state.getRankedPlayers();
+        Player[] players = playerRankings.keySet().toArray(new Player[] {});
         for (int i = nodes.getFirstElement(); i >= 0; i = nodes.getNextElement()) {
             Player player1 = players[i];
             if (playersPaired.contains(player1)) {
@@ -107,8 +112,9 @@ public class GraphPairing implements SwissPairingCalculator {
     }
 
     @Override
-    public NavigableSet<Pairing> innerCalculatePairings(TournamentState state) {
-        int[][] edgeWeights = determineEdgeWeights(state);
+    public NavigableSet<Pairing> innerCalculatePairings(TournamentState state,
+                                                        LinkedHashMap<Player, Integer> playerRankings) {
+        int[][] edgeWeights = determineEdgeWeights(state, playerRankings);
         int numPlayers = state.getNumberOfPlayers();
         Solver solver = new Solver();
         IntVar cost = VariableFactory.bounded("cost", 0, VariableFactory.MAX_INT_BOUND, solver);
@@ -123,16 +129,24 @@ public class GraphPairing implements SwissPairingCalculator {
         IUndirectedGraphVar graph = GraphVarFactory.undirected_graph_var("g", graphLowerBound, graphUpperBound, solver);
         IntVar[] degrees = VariableFactory.integerArray("degrees", numPlayers, 1, 1, solver);
 
+        @SuppressWarnings("rawtypes")
         Propagator[] props = new Propagator[] {
                 new PropNodeDegree_Var(graph, degrees),
                 new PropTreeCostSimple(graph, cost, edgeWeights),
         };
         solver.post(new Constraint("Edge-cost", props));
         solver.set(GraphStrategyFactory.lexico(graph));
-        Chatterbox.showSolutions(solver);
+        final AtomicReference<NavigableSet<Pairing>> variables = new AtomicReference<>();
+        solver.plugMonitor(
+                (IMonitorSolution) () -> {
+                    IUndirectedGraphVar v = (IUndirectedGraphVar) solver.getStrategy().getVariables()[0];
+                    System.out.println(v.isInstantiated());
+                    variables.set(hydratePairingsFromResult(v, state, playerRankings));
+                });
         solver.findOptimalSolution(ResolutionPolicy.MINIMIZE, cost);
+        System.out.println(cost);
+        System.out.println(variables);
 
-        return hydratePairingsFromResult(graph, state);
+        return variables.get();
     }
-
 }
