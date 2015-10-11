@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import magic.tournament.swiss.SwissTournament;
 
-public class SwissManagerTests {
+public class SwissTournamentTests {
 
     @Test
     public void testDefaultNumberOfRounds() {
