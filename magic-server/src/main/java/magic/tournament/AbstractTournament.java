@@ -154,10 +154,10 @@ public abstract class AbstractTournament implements Tournament {
         Map<Player, TieBreakers> tieBreakers;
         // special casing here to handle rounds before the final round
         if (round == numberOfRounds) { // in the last round, use true tiebreakers
-            tieBreakers = TieBreakers.getTieBreakers(allPlayers, overallResults, tournamentId);
+            tieBreakers = TieBreakers.getTieBreakers(state.getPlayers(), overallResults, tournamentId);
         } else {
             Map<Player, Integer> pointsPerPlayer = TieBreakers.calculatePointsPerPlayer(overallResults);
-            tieBreakers = allPlayers.stream().collect(Collectors.toMap(
+            tieBreakers = state.getPlayers().stream().collect(Collectors.toMap(
                     Function.identity(),
                     player -> new TieBreakers(
                             player,
