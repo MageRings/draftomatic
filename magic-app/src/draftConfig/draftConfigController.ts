@@ -54,7 +54,9 @@ module Magic.App.DraftConfig {
                     value: "mmb"
                 }
             ];
-            this.formats = ["Draft", "Sealed", "Team Draft", "Constructed"];
+            this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
+            "LIMITED_TEAM_SEALED", "CONSTRUCTED_CASUAL", "CONSTRUCTED_STANDARD", "CONSTRUCTED_MODERN",
+            "CONSTRUCTED_LEGACY", "CONSTRUCTED_VINTAGE"]
             this.currentId = 1;
         }
 

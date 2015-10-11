@@ -20,7 +20,19 @@ module Magic.App.Tournament {
         public startTournament() {
             var playerNames = _.pluck(this.tournamentModel.players, "name");
             console.log(this.tournamentModel.players);
-            this.http.post<any>("api/tournament/register", this.tournamentModel.players).then((createTournamentResponse) => {
+            console.log("rounds: " + this.tournamentModel.numRounds);
+            this.http.post<any>("api/tournament/register",
+            {
+                "players": playerNames,
+                "format": this.tournamentModel.format,
+                "code": this.tournamentModel.set,
+            },
+            {
+                "params":{
+                    "rounds": this.tournamentModel.numRounds,
+                },
+            }
+            ).then((createTournamentResponse) => {
                 var tournamentId = createTournamentResponse.data;
                 console.log(tournamentId);
                 this.state.go("instance", {id: encodeURI(tournamentId)});

@@ -13,7 +13,8 @@ module Magic.App.Round {
             this.http = $http;
             this.http.get<any>("api/tournament/status/" + this.tournamentId).then((response) => {
                 console.log(response);
-                this.tournament = response.data;
+                this.tournament = response.data.tournamentData;
+                this.tournament.currentRound = response.data.currentRound
             });
         }
         

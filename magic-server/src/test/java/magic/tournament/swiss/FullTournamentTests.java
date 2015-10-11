@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -17,12 +18,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 
+import magic.data.Format;
 import magic.data.Match;
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
 import magic.data.Round;
-import magic.data.TournamentStatus;
+import magic.data.database.NoopDB;
+import magic.data.tournament.TournamentInput;
+import magic.data.tournament.TournamentStatus;
 import magic.tournament.TieBreakers;
 import magic.tournament.Tournament;
 
@@ -56,7 +60,7 @@ public final class FullTournamentTests {
         return Arrays.asList(new Object[][] {
                 {
                         "Basic smoke test",
-                        ImmutableList.of(MIKE, KIMBERLY, SAM, RED_HULK),
+                        ImmutableSet.of(MIKE, KIMBERLY, SAM, RED_HULK),
                         ImmutableList.of(
                                 new Round(1, true, Sets.newTreeSet(ImmutableSet.of(
                                         new Match(p1, p1Win, false, false),
@@ -72,7 +76,7 @@ public final class FullTournamentTests {
                 },
                 {
                         "Drop a player",
-                        ImmutableList.of(MIKE, KIMBERLY, SAM, RED_HULK),
+                        ImmutableSet.of(MIKE, KIMBERLY, SAM, RED_HULK),
                         ImmutableList.of(
                                 new Round(1, true, Sets.newTreeSet(ImmutableSet.of(
                                         new Match(p1, p1Win, false, true),
@@ -89,12 +93,12 @@ public final class FullTournamentTests {
         });
     }
 
-    private Collection<Player>        players;
-    private Collection<Round>         rounds;
-    private NavigableSet<TieBreakers> tieBreakers;
+    private final Set<Player>               players;
+    private final Collection<Round>         rounds;
+    private final NavigableSet<TieBreakers> tieBreakers;
 
     public FullTournamentTests(String testName,
-                               Collection<Player> players,
+                               Set<Player> players,
                                Collection<Round> rounds,
                                NavigableSet<TieBreakers> tieBreakers) {
         this.players = players;
@@ -105,16 +109,17 @@ public final class FullTournamentTests {
     @Test
     public void test() {
         Tournament tournament = new SwissTournament(
+                NoopDB.NOOPDB,
                 TOURNAMENT_ID,
-                Optional.of(rounds.size()),
-                players,
+                new TournamentInput(Format.LIMITED_DRAFT, "ignore", this.players),
+                Optional.of(this.rounds.size()),
                 new GraphPairing());
         tournament.initFirstRound();
-        for (Round r : rounds) {
+        for (Round r : this.rounds) {
             TournamentStatus status = tournament.getStatus();
             Assert.assertEquals(r.getNumber(), status.getCurrentRound());
-            Assert.assertEquals(rounds.size(), status.getNumberOfRounds());
-            Match[] actualMatches = status.getRounds().last().getMatches().toArray(new Match[] {});
+            Assert.assertEquals(this.rounds.size(), status.getTournamentData().getNumberOfRounds());
+            Match[] actualMatches = status.getTournamentData().getRounds().last().getMatches().toArray(new Match[] {});
             Match[] expectedMatches = r.getMatches().toArray(new Match[] {});
             for (int i = 0; i < r.getMatches().size(); i++) {
                 Assert.assertEquals(Result.INCOMPLETE, actualMatches[i].getResult());
@@ -130,7 +135,7 @@ public final class FullTournamentTests {
         }
         NavigableSet<TieBreakers> actual = tournament.getTieBreakers(Optional.empty());
         Assert.assertEquals(
-                tieBreakers.toString(),
+                this.tieBreakers.toString(),
                 actual.stream()
                         .map(t -> new TieBreakers(
                                 t.getPlayer(),

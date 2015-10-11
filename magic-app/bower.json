@@ -2,10 +2,8 @@
   "name": "magic-app",
   "version": "0.1.0",
   "main": [
-    "build/src/utils.js",
     "build/src/app.js",
     "build/src/tournamentController.js",
-    "build/src/match/matchController.js",
     "build/src/match/matchDirective.js",
     "build/src/round/roundsController.js",
     "build/src/round/roundController.js",

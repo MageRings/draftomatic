@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-import magic.data.database.Database;
+import magic.data.database.FileSystemDB;
 
 public class Player implements Comparable<Player> {
 
     public static final Player BYE = new Player();
 
-    private final long id;
+    private final long   id;
     private final String name;
 
     private Player() {
@@ -20,13 +20,13 @@ public class Player implements Comparable<Player> {
     }
 
     public Player(String name) {
-        this(Database.nextPlayerId(), name);
+        this(FileSystemDB.nextPlayerId(), name);
     }
 
     @JsonCreator
     public Player(@JsonProperty("id") long id,
                   @JsonProperty("name") String name) {
-        Preconditions.checkArgument(id > 0, "Player id must be greater than 0.");
+        Preconditions.checkArgument(id > -1, "Player id must be greater than -1.");
         Preconditions.checkArgument(isValidName(name), "Invalid name: " + name);
 
         this.id = id;
@@ -34,11 +34,11 @@ public class Player implements Comparable<Player> {
     }
 
     public long getId() {
-        return id;
+        return this.id;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     @Override
@@ -46,14 +46,14 @@ public class Player implements Comparable<Player> {
         if (o == null) {
             return 1;
         }
-        return Long.compare(id, o.id);
+        return Long.compare(this.id, o.id);
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (int) (id ^ (id >>> 32));
+        result = prime * result + (int) (this.id ^ (this.id >>> 32));
         return result;
     }
 
@@ -69,7 +69,7 @@ public class Player implements Comparable<Player> {
             return false;
         }
         Player other = (Player) obj;
-        if (id != other.id) {
+        if (this.id != other.id) {
             return false;
         }
         return true;
@@ -77,10 +77,10 @@ public class Player implements Comparable<Player> {
 
     @Override
     public String toString() {
-        return "Player [id=" + id + ", name=" + name + "]";
+        return "Player [id=" + this.id + ", name=" + this.name + "]";
     }
 
     private static boolean isValidName(String name) {
-        return !(Strings.isNullOrEmpty(name) || name.equalsIgnoreCase("bye"));
+        return !(Strings.isNullOrEmpty(name));
     }
 }

@@ -9,7 +9,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
 import magic.data.Deck;
-import magic.data.database.Database;
+import magic.data.database.FileSystemDB;
 
 @Path("/deck")
 public class DeckResource {
@@ -17,18 +17,18 @@ public class DeckResource {
     @POST
     @Path("/register")
     public void registerDeck(Deck deck) {
-        Database.addDeck(deck);
+        FileSystemDB.addDeck(deck);
     }
 
     @GET
     @Path("/list")
     public List<Deck> listDecks() throws IOException {
-        return Database.readDecks();
+        return FileSystemDB.readDecks();
     }
 
     @GET
     @Path("/list/{id}")
     public Deck listDeck(@PathParam("id") Long id) throws IOException {
-        return Database.readDeckFromId(id);
+        return FileSystemDB.readDeckFromId(id);
     }
 }

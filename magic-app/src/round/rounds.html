@@ -1,7 +1,6 @@
 <div ng-repeat="round in roundsController.tournament.rounds.slice(0, roundsController.tournament.currentRound+1)">
   <round round="round"></round>
   <div ng-if="$index == roundsController.tournament.currentRound-1 && !roundsController.tournament.complete">
-    {{roundsController.tournament}}
     <div ng-if="roundsController.tournament.numberOfRounds == roundsController.tournament.currentRound" ng-click="roundsController.getFinalStandings()">final standings</div>
     <div ng-if="roundsController.tournament.numberOfRounds != roundsController.tournament.currentRound" ng-click="roundsController.pairNextRound()">next round</div>
   </div>

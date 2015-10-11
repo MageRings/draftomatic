@@ -1,10 +1,10 @@
 package magic.tournament;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -18,69 +18,63 @@ import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
 import magic.data.Round;
-import magic.data.TournamentStatus;
+import magic.data.database.Database;
+import magic.data.tournament.TournamentData;
+import magic.data.tournament.TournamentStatus;
 import magic.tournament.swiss.TournamentState;
 
 public abstract class AbstractTournament implements Tournament {
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Database      db;
 
     // this block represents the entire persisted state
-    // these elements are immutable
-    private final String              tournamentId;
-    private final Set<Player>         allPlayers;
-    private final int                 numberOfRounds;
-    // these elements are mutable
-    private final NavigableSet<Round> overallResults = Sets.newTreeSet();
-    private boolean                   isComplete     = false;
+    private final TournamentData data;
+    // end persisted state
 
-    public AbstractTournament(String tournamentId, int numberOfRounds, Collection<Player> inputPlayers) {
-        this.tournamentId = tournamentId;
-        Set<Player> players = Sets.newHashSet();
-        for (Player p : inputPlayers) {
-            if (players.contains(p.getId())) {
-                throw new IllegalArgumentException("Two players have the same id: " + p.getId());
-            }
-            players.add(p);
-        }
-        this.allPlayers = players;
-        this.numberOfRounds = numberOfRounds;
-    }
-
-    protected String getTournamentId() {
-        return tournamentId;
+    public AbstractTournament(Database db, TournamentData data) {
+        this.db = db;
+        this.data = data;
     }
 
     // should be called from within a lock
     private int getCurrentRound() {
-        return overallResults.size();
+        return this.data.getRounds().size();
+    }
+
+    // should be called from within a lock
+    private boolean isComplete() {
+        return this.data.getRounds().size() == this.data.getNumberOfRounds()
+                && this.data.getRounds().last().isComplete();
+
     }
 
     @Override
     public void initFirstRound() {
-        lock.writeLock().lock();
+        this.lock.writeLock().lock();
         try {
-            getPairingsAndAddToResults(TournamentState.createTournamentState(allPlayers, Sets.newTreeSet()));
+            getPairingsAndAddToResults(TournamentState.createTournamentState(
+                    this.data.getInput().getPlayers(),
+                    Sets.newTreeSet()));
         } finally {
-            lock.writeLock().unlock();
+            this.lock.writeLock().unlock();
         }
     }
 
     @Override
     public TournamentStatus getStatus() {
-        lock.readLock().lock();
+        this.lock.readLock().lock();
         try {
             return new TournamentStatus(
                     getCurrentRound(),
-                    numberOfRounds,
-                    isComplete,
-                    overallResults,
+                    isComplete(),
+                    this.data,
                     Sets.newTreeSet(TieBreakers.getTieBreakers(
-                            allPlayers,
-                            overallResults,
-                            tournamentId).values()));
+                            this.data.getInput().getPlayers(),
+                            this.data.getRounds(),
+                            this.data.getId()).values()));
         } finally {
-            lock.readLock().unlock();
+            this.lock.readLock().unlock();
         }
     }
 
@@ -90,8 +84,9 @@ public abstract class AbstractTournament implements Tournament {
         if (roundRequested.isPresent()) {
             round = roundRequested.get();
         }
-        if (round > numberOfRounds) {
-            throw new IllegalArgumentException("This tournament only has " + numberOfRounds + " rounds!");
+        if (round > this.data.getNumberOfRounds()) {
+            throw new IllegalArgumentException(
+                    "This tournament only has " + this.data.getNumberOfRounds() + " rounds!");
         }
         return round;
     }
@@ -104,32 +99,39 @@ public abstract class AbstractTournament implements Tournament {
      */
     @Override
     public Round registerResults(Optional<Integer> roundRequested, Collection<Match> thisRoundResults) {
-        lock.writeLock().lock();
+        this.lock.writeLock().lock();
         try {
-            if (isComplete) {
+            if (isComplete()) {
                 throw new IllegalArgumentException("This tournament is already compelete!");
             }
             int round = roundToUse(roundRequested);
-            int currentRound = overallResults.last().getNumber();
+            int currentRound = this.data.getRounds().last().getNumber();
             if (round != currentRound) {
                 throw new IllegalArgumentException(
                         "You may only enter results for the current round (" + currentRound + ")!");
             }
             // remove the temporary pairings for the round
             // TODO: verify that the pairings passed in are legit
-            overallResults.pollLast();
-            overallResults.add(new Round(round, true, Sets.newTreeSet(thisRoundResults)));
-            if (currentRound == numberOfRounds) {
-                isComplete = true;
+            this.data.getRounds().pollLast();
+            this.data.getRounds().add(new Round(round, true, Sets.newTreeSet(thisRoundResults)));
+            if (isComplete()) {
+                try {
+                    this.db.writeTournament(this.data);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 return null;
             }
             currentRound += 1;
             return new Round(
                     currentRound,
                     false,
-                    getPairingsAndAddToResults(TournamentState.createTournamentState(allPlayers, overallResults)));
+                    getPairingsAndAddToResults(
+                            TournamentState.createTournamentState(
+                                    this.data.getInput().getPlayers(),
+                                    this.data.getRounds())));
         } finally {
-            lock.writeLock().unlock();
+            this.lock.writeLock().unlock();
         }
     }
 
@@ -145,7 +147,12 @@ public abstract class AbstractTournament implements Tournament {
             tmp.put(m.getPairing().getPlayer1(), m);
             tmp.put(m.getPairing().getPlayer2(), m);
         }
-        overallResults.add(new Round(nextRound, false, matches));
+        this.data.getRounds().add(new Round(nextRound, false, matches));
+        try {
+            this.db.writeTournament(this.data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return matches;
     }
 
@@ -153,10 +160,10 @@ public abstract class AbstractTournament implements Tournament {
     private NavigableSet<Pairing> calculatePairings(TournamentState state, int round) {
         Map<Player, TieBreakers> tieBreakers;
         // special casing here to handle rounds before the final round
-        if (round == numberOfRounds) { // in the last round, use true tiebreakers
-            tieBreakers = TieBreakers.getTieBreakers(state.getPlayers(), overallResults, tournamentId);
+        if (round == this.data.getNumberOfRounds()) { // in the last round, use true tiebreakers
+            tieBreakers = TieBreakers.getTieBreakers(state.getPlayers(), this.data.getRounds(), this.data.getId());
         } else {
-            Map<Player, Integer> pointsPerPlayer = TieBreakers.calculatePointsPerPlayer(overallResults);
+            Map<Player, Integer> pointsPerPlayer = TieBreakers.calculatePointsPerPlayer(this.data.getRounds());
             tieBreakers = state.getPlayers().stream().collect(Collectors.toMap(
                     Function.identity(),
                     player -> new TieBreakers(
@@ -165,7 +172,7 @@ public abstract class AbstractTournament implements Tournament {
                             0,
                             0,
                             0,
-                            TieBreakers.generateRandomTieBreaker(tournamentId, player.getId(), round))));
+                            TieBreakers.generateRandomTieBreaker(this.data.getId(), player.getId(), round))));
         }
         return innerCalculatePairings(state, tieBreakers);
     }
@@ -175,16 +182,18 @@ public abstract class AbstractTournament implements Tournament {
 
     @Override
     public NavigableSet<TieBreakers> getTieBreakers(Optional<Integer> roundRequested) {
-        lock.readLock().lock();
+        this.lock.readLock().lock();
         try {
             int round = roundToUse(roundRequested);
             Collection<Round> truncatedResults =
-                    overallResults.stream().filter(r -> r.getNumber() <= round).collect(Collectors.toSet());
+                    this.data.getRounds().stream().filter(r -> r.getNumber() <= round).collect(Collectors.toSet());
             // when requested by the user, we should always return the tiebreakers as if this is the
             // final round
-            return Sets.newTreeSet(TieBreakers.getTieBreakers(allPlayers, truncatedResults, tournamentId).values());
+            return Sets.newTreeSet(
+                    TieBreakers.getTieBreakers(this.data.getInput().getPlayers(), truncatedResults, this.data.getId())
+                            .values());
         } finally {
-            lock.readLock().unlock();
+            this.lock.readLock().unlock();
         }
     }
 }

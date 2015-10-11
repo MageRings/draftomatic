@@ -8,3 +8,5 @@ node_modules/
 build/
 bin/
 log/
+
+magic-distribution/src/dev/data

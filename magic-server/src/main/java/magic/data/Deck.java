@@ -3,7 +3,7 @@ package magic.data;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import magic.data.database.Database;
+import magic.data.database.FileSystemDB;
 
 public class Deck {
 
@@ -16,7 +16,7 @@ public class Deck {
     public Deck(@JsonProperty("colors") String colors,
                 @JsonProperty("archetype") String archetype,
                 @JsonProperty("format") Format format) {
-        this(Database.nextDeckId(), colors, archetype, format);
+        this(FileSystemDB.nextDeckId(), colors, archetype, format);
     }
 
     @JsonCreator

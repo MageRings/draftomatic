@@ -1,16 +1,4 @@
 module Magic.App.Tournament {
-    export class Format {
-        public LIMITED_DRAFT = "LIMITED_DRAFT";
-        public LIMITED_TEAM_DRAFT = "LIMITED_TEAM_DRAFT";
-        public LIMITED_SEALED = "LIMITED_SEALED";
-        public LIMITED_TEAM_SEALED = "LIMITED_TEAM_SEALED";
-        public CONSTRUCTED_CASUAL = "CONSTRUCTED_CASUAL";
-        public CONSTRUCTED_STANDARD = "CONSTRUCTED_STANDARD";
-        public CONSTRUCTED_MODERN = "CONSTRUCTED_MODERN";
-        public CONSTRUCTED_LEGACY = "CONSTRUCTED_LEGACY";
-        public CONSTRUCTED_VINTAGE = "CONSTRUCTED_VINTAGE";
-    }
-    
     export interface IPlayer {
         name: string;
     }

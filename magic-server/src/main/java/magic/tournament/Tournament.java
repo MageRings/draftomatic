@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import magic.data.Match;
 import magic.data.Round;
-import magic.data.TournamentStatus;
+import magic.data.tournament.TournamentStatus;
 
 public interface Tournament {
 

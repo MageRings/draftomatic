@@ -32,7 +32,7 @@ public final class MagicApplication extends Application<MagicConfiguration> {
         environment.jersey().register(new DeckResource());
         environment.jersey().register(new TournamentResource());
 
-        //exception mappers
+        // exception mappers
         environment.jersey().register(new CatchAllExceptionMapper());
         environment.jersey().register(new IllegalArgumentExceptionMapper());
         environment.jersey().register(new TournamentNotFoundExceptionMapper());

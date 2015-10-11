@@ -1,4 +1,4 @@
-package magic.data;
+package magic.data.tournament;
 
 import java.util.NavigableSet;
 
@@ -6,38 +6,39 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import magic.tournament.TieBreakers;
 
+/*
+ * This is a class with derived fields useful for the frontend.  Note that it is not persisted.
+ */
 public class TournamentStatus {
 
-    private final int currentRound;
-    private final int numberOfRounds;
-    private final boolean complete;
-    private final NavigableSet<Round> rounds;
+    private final int                       currentRound;
+    private final boolean                   complete;
+    private final TournamentData            tournamentData;
     private final NavigableSet<TieBreakers> finalStandings;
 
     public TournamentStatus(
                             @JsonProperty("currentRound") int currentRound,
-                            @JsonProperty("numberOfRounds") int numberOfRounds,
                             @JsonProperty("complete") boolean complete,
-                            @JsonProperty("rounds") NavigableSet<Round> rounds,
+                            @JsonProperty("tournamentData") TournamentData tournamentData,
                             @JsonProperty("finalStandings") NavigableSet<TieBreakers> finalStandings) {
         this.currentRound = currentRound;
-        this.numberOfRounds = numberOfRounds;
         this.complete = complete;
-        this.rounds = rounds;
+        this.tournamentData = tournamentData;
         this.finalStandings = finalStandings;
     }
+
     public int getCurrentRound() {
         return currentRound;
     }
-    public int getNumberOfRounds() {
-        return numberOfRounds;
-    }
+
     public boolean isComplete() {
         return complete;
     }
-    public NavigableSet<Round> getRounds() {
-        return rounds;
+
+    public TournamentData getTournamentData() {
+        return tournamentData;
     }
+
     public NavigableSet<TieBreakers> finalStandings() {
         return finalStandings;
     }

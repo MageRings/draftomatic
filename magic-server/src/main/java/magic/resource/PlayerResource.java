@@ -10,7 +10,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
 import magic.data.Player;
-import magic.data.database.Database;
+import magic.data.database.FileSystemDB;
 
 @Path("/player")
 public class PlayerResource {
@@ -18,18 +18,18 @@ public class PlayerResource {
     @POST
     @Path("/register")
     public void registerPlayer(@QueryParam("player") Player player) {
-        Database.addPlayer(player);
+        FileSystemDB.addPlayer(player);
     }
 
     @GET
     @Path("/list")
     public List<Player> listPlayers() throws IOException {
-        return Database.readPlayers();
+        return FileSystemDB.readPlayers();
     }
 
     @GET
     @Path("/list/{id}")
     public Player listPlayer(@PathParam("id") Long id) throws IOException {
-        return Database.readPlayerFromId(id);
+        return FileSystemDB.readPlayerFromId(id);
     }
 }
