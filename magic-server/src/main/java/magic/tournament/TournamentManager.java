@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 import magic.data.Format;
 import magic.data.Player;
 import magic.exceptions.TournamentNotFoundException;
-import magic.tournament.swiss.ListSortingPairing;
+import magic.tournament.swiss.GraphPairing;
 import magic.tournament.swiss.SwissTournament;
 
 public class TournamentManager {
@@ -28,7 +28,7 @@ public class TournamentManager {
         while (runningTournaments.containsKey(uuid)) {
             uuid = UUID.randomUUID().toString();
         }
-        Tournament t = new SwissTournament(uuid, rounds, players, new ListSortingPairing());
+        Tournament t = new SwissTournament(uuid, rounds, players, new GraphPairing());
         t.initFirstRound();
         runningTournaments.put(uuid, t);
         return uuid;
