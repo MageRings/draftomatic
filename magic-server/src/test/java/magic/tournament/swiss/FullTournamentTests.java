@@ -45,9 +45,11 @@ public final class FullTournamentTests {
     private static final Pairing p2 = new Pairing(SAM, RED_HULK, 0);
     private static final Pairing p3 = new Pairing(MIKE, RED_HULK, 6);
     private static final Pairing p4 = new Pairing(KIMBERLY, SAM, 0);
+    private static final Pairing p5 = new Pairing(Player.BYE, SAM, 0);
 
-    private static final Result p1Win = new Result(2, 0, 0);
-    private static final Result p2Win = new Result(1, 2, 0);
+    private static final Result p1Win    = new Result(2, 0, 0);
+    private static final Result p2Win    = new Result(1, 2, 0);
+    private static final Result p2WinAll = new Result(0, 2, 0);
 
     @Parameters(name = "{0}")
     public static Iterable<Object[]> data() {
@@ -66,6 +68,22 @@ public final class FullTournamentTests {
                                 new TieBreakers(KIMBERLY, 0, .75, .2, .75, IGNORED),
                                 new TieBreakers(SAM, 3, .415, .5, .365, IGNORED),
                                 new TieBreakers(RED_HULK, 3, .75, .4, .75, IGNORED),
+                                new TieBreakers(MIKE, 6, .415, 1, .365, IGNORED)),
+                },
+                {
+                        "Drop a player",
+                        ImmutableList.of(MIKE, KIMBERLY, SAM, RED_HULK),
+                        ImmutableList.of(
+                                new Round(1, true, Sets.newTreeSet(ImmutableSet.of(
+                                        new Match(p1, p1Win, false, true),
+                                        new Match(p2, p2Win, false, false)))),
+                                new Round(2, true, Sets.newTreeSet(ImmutableSet.of(
+                                        new Match(p3, p1Win, false, false),
+                                        new Match(p5, p2WinAll, false, false))))),
+                        ImmutableSortedSet.of(
+                                new TieBreakers(KIMBERLY, 0, 1, 0, 1, IGNORED),
+                                new TieBreakers(SAM, 3, .5, .6, .4, IGNORED),
+                                new TieBreakers(RED_HULK, 3, .75, .4, .8, IGNORED),
                                 new TieBreakers(MIKE, 6, .415, 1, .365, IGNORED)),
                 },
         });
