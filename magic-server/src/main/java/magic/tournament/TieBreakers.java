@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -47,7 +46,12 @@ public class TieBreakers implements Comparable<TieBreakers> {
         return Math.round(input * 100000d) / 100000d;
     }
 
-    public static Map<Player, TieBreakers> getTieBreakers(Collection<Round> results,
+    /*
+     * Tiebreakers have two different modes. In the final round, they include all stats, but before
+     * they they only use total points and the random tiebreaker
+     */
+    public static Map<Player, TieBreakers> getTieBreakers(Collection<Player> players,
+                                                          Collection<Round> results,
                                                           String tournamentId) {
         Map<Player, Integer> pointsPerPlayer = calculatePointsPerPlayer(results);
         Map<Player, Collection<Match>> flatResults = getFlatResults(results);
@@ -61,18 +65,18 @@ public class TieBreakers implements Comparable<TieBreakers> {
                 playerGameWinPercentages,
                 DEFAULT_GAME_WIN_PERCENTAGE);
 
-        return pointsPerPlayer.keySet().stream().collect(Collectors.toMap(
+        return players.stream().collect(Collectors.toMap(
                 Function.identity(),
                 player -> new TieBreakers(
                         player,
-                        pointsPerPlayer.get(player),
-                        opponentMatchWinPercentages.get(player),
-                        playerGameWinPercentages.get(player),
-                        opponentGameWinPercentages.get(player),
-                        generateRandomTieBreaker(tournamentId, player.getId(), Optional.<Integer> empty()))));
+                        pointsPerPlayer.getOrDefault(player, 0),
+                        opponentMatchWinPercentages.getOrDefault(player, 0.0),
+                        playerGameWinPercentages.getOrDefault(player, 0.0),
+                        opponentGameWinPercentages.getOrDefault(player, 0.0),
+                        generateRandomTieBreaker(tournamentId, player.getId(), results.size()))));
     }
 
-    private static Map<Player, Integer> calculatePointsPerPlayer(Collection<Round> results) {
+    public static Map<Player, Integer> calculatePointsPerPlayer(Collection<Round> results) {
         Map<Player, Integer> pointsPerPlayer = Maps.newHashMap();
         results.stream().filter(r -> r.isComplete()).forEach(r -> {
             r.getMatches().forEach(m -> {
@@ -87,19 +91,18 @@ public class TieBreakers implements Comparable<TieBreakers> {
 
     /**
      * Creates a value that is intended to be compared against similarly generated values to ensure
-     * that each round is paired (pseudo)random but deterministic opponent in each round. Each input
-     * is a parameter for which the output should be unique. The round is not a factor in the
-     * tiebreaker for the final standings.
+     * that each player is paired against a (pseudo)random but deterministic opponent in each round.
+     * Each input is a parameter for which the output should be unique.
      *
      * @param tournamentId
      * @param playerId
      * @param round
      * @return
      */
-    public static String generateRandomTieBreaker(String tournamentId, long playerId, Optional<Integer> round) {
+    public static String generateRandomTieBreaker(String tournamentId, long playerId, Integer round) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            String base = tournamentId + playerId + (round.isPresent() ? round.get() : "");
+            String base = tournamentId + playerId + round;
             return BaseEncoding.base32Hex().encode(md.digest(base.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
@@ -184,7 +187,8 @@ public class TieBreakers implements Comparable<TieBreakers> {
             if (entry.getValue().size() == 0) {
                 return 0.0;
             }
-            return (double) pointsPerPlayer.get(entry.getKey()) / (entry.getValue().size() * MAX_POINTS_PER_MATCH);
+            return (double) pointsPerPlayer.getOrDefault(entry.getKey(), 0)
+                    / (entry.getValue().size() * MAX_POINTS_PER_MATCH);
         }));
     }
 

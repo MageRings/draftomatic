@@ -1,9 +1,9 @@
-package magic.tournament;
+package magic.tournament.swiss;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.NavigableSet;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -22,22 +22,28 @@ import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.Result;
 import magic.data.Round;
+import magic.data.TournamentStatus;
 import magic.tournament.TieBreakers;
+import magic.tournament.Tournament;
 
+/**
+ * This class provides essentially full testing of the entire tournament engine. Ideally no special
+ * cases are tested here as it is a fairly heavyweight framework for doing so.
+ */
 @RunWith(Parameterized.class)
-public final class TieBreakersTests {
+public final class FullTournamentTests {
 
-    private static final String IGNORED = "final tiebreaker ignored";
+    private static final String IGNORED       = "final tiebreaker ignored";
+    private static final String TOURNAMENT_ID = "id";
 
     private static final Player MIKE     = new Player(1, "Mike");
     private static final Player KIMBERLY = new Player(2, "Kimberly");
     private static final Player SAM      = new Player(3, "Sam");
     private static final Player RED_HULK = new Player(4, "Red hulk");
 
-    // total points are not relevant to tiebreaker calculations, only for sorting pairings
     private static final Pairing p1 = new Pairing(MIKE, KIMBERLY, 0);
     private static final Pairing p2 = new Pairing(SAM, RED_HULK, 0);
-    private static final Pairing p3 = new Pairing(MIKE, RED_HULK, 0);
+    private static final Pairing p3 = new Pairing(MIKE, RED_HULK, 6);
     private static final Pairing p4 = new Pairing(KIMBERLY, SAM, 0);
 
     private static final Result p1Win = new Result(2, 0, 0);
@@ -65,14 +71,14 @@ public final class TieBreakersTests {
         });
     }
 
-    private final Collection<Player>        players;
-    private final Collection<Round>         rounds;
-    private final NavigableSet<TieBreakers> tieBreakers;
+    private Collection<Player>        players;
+    private Collection<Round>         rounds;
+    private NavigableSet<TieBreakers> tieBreakers;
 
-    public TieBreakersTests(String testName,
-                            Collection<Player> players,
-                            Collection<Round> rounds,
-                            NavigableSet<TieBreakers> tieBreakers) {
+    public FullTournamentTests(String testName,
+                               Collection<Player> players,
+                               Collection<Round> rounds,
+                               NavigableSet<TieBreakers> tieBreakers) {
         this.players = players;
         this.rounds = rounds;
         this.tieBreakers = tieBreakers;
@@ -80,12 +86,34 @@ public final class TieBreakersTests {
 
     @Test
     public void test() {
-        Map<Player, TieBreakers> actual = TieBreakers.getTieBreakers(players, rounds, "id");
+        Tournament tournament = new SwissTournament(
+                TOURNAMENT_ID,
+                Optional.of(rounds.size()),
+                players,
+                new GraphPairing());
+        tournament.initFirstRound();
+        for (Round r : rounds) {
+            TournamentStatus status = tournament.getStatus();
+            Assert.assertEquals(r.getNumber(), status.getCurrentRound());
+            Assert.assertEquals(rounds.size(), status.getNumberOfRounds());
+            Match[] actualMatches = status.getRounds().last().getMatches().toArray(new Match[] {});
+            Match[] expectedMatches = r.getMatches().toArray(new Match[] {});
+            for (int i = 0; i < r.getMatches().size(); i++) {
+                Assert.assertEquals(Result.INCOMPLETE, actualMatches[i].getResult());
+                Assert.assertFalse(actualMatches[i].isP1Drop());
+                Assert.assertFalse(actualMatches[i].isP2Drop());
+                Assert.assertEquals(
+                        expectedMatches[i].getPairing().toString(),
+                        actualMatches[i].getPairing().toString());
+
+            }
+            // move on to the next round
+            tournament.registerResults(Optional.empty(), ImmutableList.copyOf(expectedMatches));
+        }
+        NavigableSet<TieBreakers> actual = tournament.getTieBreakers(Optional.empty());
         Assert.assertEquals(
                 tieBreakers.toString(),
-                actual.values()
-                        .stream()
-                        .sorted()
+                actual.stream()
                         .map(t -> new TieBreakers(
                                 t.getPlayer(),
                                 t.getMatchPoints(),

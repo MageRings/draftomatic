@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
@@ -26,12 +27,12 @@ public abstract class AbstractTournament implements Tournament {
 
     // this block represents the entire persisted state
     // these elements are immutable
-    private final String tournamentId;
-    private final Set<Player> allPlayers;
-    private final int numberOfRounds;
+    private final String              tournamentId;
+    private final Set<Player>         allPlayers;
+    private final int                 numberOfRounds;
     // these elements are mutable
     private final NavigableSet<Round> overallResults = Sets.newTreeSet();
-    private boolean isComplete = false;
+    private boolean                   isComplete     = false;
 
     public AbstractTournament(String tournamentId, int numberOfRounds, Collection<Player> inputPlayers) {
         this.tournamentId = tournamentId;
@@ -44,19 +45,24 @@ public abstract class AbstractTournament implements Tournament {
         }
         this.allPlayers = players;
         this.numberOfRounds = numberOfRounds;
-        getPairingsAndAddToResults(TournamentState.createTournamentState(players, Sets.newTreeSet()));
     }
 
     protected String getTournamentId() {
         return tournamentId;
     }
 
-    protected int getCurrentRound() {
-        lock.readLock().lock();
+    // should be called from within a lock
+    private int getCurrentRound() {
+        return overallResults.size();
+    }
+
+    @Override
+    public void initFirstRound() {
+        lock.writeLock().lock();
         try {
-            return overallResults.last().getNumber();
+            getPairingsAndAddToResults(TournamentState.createTournamentState(allPlayers, Sets.newTreeSet()));
         } finally {
-            lock.readLock().unlock();
+            lock.writeLock().unlock();
         }
     }
 
@@ -65,11 +71,12 @@ public abstract class AbstractTournament implements Tournament {
         lock.readLock().lock();
         try {
             return new TournamentStatus(
-                    overallResults.last().getNumber(),
+                    getCurrentRound(),
                     numberOfRounds,
                     isComplete,
                     overallResults,
                     Sets.newTreeSet(TieBreakers.getTieBreakers(
+                            allPlayers,
                             overallResults,
                             tournamentId).values()));
         } finally {
@@ -77,8 +84,9 @@ public abstract class AbstractTournament implements Tournament {
         }
     }
 
+    // should be called from within a lock
     private int roundToUse(Optional<Integer> roundRequested) {
-        int round = overallResults.last().getNumber();
+        int round = getCurrentRound();
         if (roundRequested.isPresent()) {
             round = roundRequested.get();
         }
@@ -125,9 +133,10 @@ public abstract class AbstractTournament implements Tournament {
         }
     }
 
+    // should be called from within a lock
     private NavigableSet<Match> getPairingsAndAddToResults(TournamentState state) {
-        int currentRound = overallResults.last().getNumber();
-        NavigableSet<Pairing> pairings = calculatePairings(state, currentRound == numberOfRounds);
+        int nextRound = getCurrentRound() + 1;
+        NavigableSet<Pairing> pairings = calculatePairings(state, nextRound);
         NavigableSet<Match> matches = Sets.newTreeSet(
                 pairings.stream().map(pairing -> new Match(pairing, Result.INCOMPLETE, false, false)).collect(
                         Collectors.toSet()));
@@ -136,22 +145,33 @@ public abstract class AbstractTournament implements Tournament {
             tmp.put(m.getPairing().getPlayer1(), m);
             tmp.put(m.getPairing().getPlayer2(), m);
         }
-        overallResults.add(new Round(currentRound, false, matches));
+        overallResults.add(new Round(nextRound, false, matches));
         return matches;
     }
 
-    private NavigableSet<Pairing> calculatePairings(TournamentState state, boolean lastRound) {
-        Optional<Map<Player, TieBreakers>> tieBreakers = Optional.empty();
-        // edge case for one round tournament
-        // TODO: factor this out by making tiebreaker code more robust
-        if (lastRound && overallResults.size() > 0) {
-            tieBreakers = Optional.of(TieBreakers.getTieBreakers(overallResults, tournamentId));
+    // should be called from within a lock
+    private NavigableSet<Pairing> calculatePairings(TournamentState state, int round) {
+        Map<Player, TieBreakers> tieBreakers;
+        // special casing here to handle rounds before the final round
+        if (round == numberOfRounds) { // in the last round, use true tiebreakers
+            tieBreakers = TieBreakers.getTieBreakers(allPlayers, overallResults, tournamentId);
+        } else {
+            Map<Player, Integer> pointsPerPlayer = TieBreakers.calculatePointsPerPlayer(overallResults);
+            tieBreakers = allPlayers.stream().collect(Collectors.toMap(
+                    Function.identity(),
+                    player -> new TieBreakers(
+                            player,
+                            pointsPerPlayer.getOrDefault(player, 0),
+                            0,
+                            0,
+                            0,
+                            TieBreakers.generateRandomTieBreaker(tournamentId, player.getId(), round))));
         }
         return innerCalculatePairings(state, tieBreakers);
     }
 
     protected abstract NavigableSet<Pairing> innerCalculatePairings(TournamentState state,
-                                                                    Optional<Map<Player, TieBreakers>> tieBreakers);
+                                                                    Map<Player, TieBreakers> tieBreakers);
 
     @Override
     public NavigableSet<TieBreakers> getTieBreakers(Optional<Integer> roundRequested) {
@@ -160,7 +180,9 @@ public abstract class AbstractTournament implements Tournament {
             int round = roundToUse(roundRequested);
             Collection<Round> truncatedResults =
                     overallResults.stream().filter(r -> r.getNumber() <= round).collect(Collectors.toSet());
-            return Sets.newTreeSet(TieBreakers.getTieBreakers(truncatedResults, tournamentId).values());
+            // when requested by the user, we should always return the tiebreakers as if this is the
+            // final round
+            return Sets.newTreeSet(TieBreakers.getTieBreakers(allPlayers, truncatedResults, tournamentId).values());
         } finally {
             lock.readLock().unlock();
         }

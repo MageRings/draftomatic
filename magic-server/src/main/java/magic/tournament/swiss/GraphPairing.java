@@ -140,13 +140,9 @@ public class GraphPairing implements SwissPairingCalculator {
         solver.plugMonitor(
                 (IMonitorSolution) () -> {
                     IUndirectedGraphVar v = (IUndirectedGraphVar) solver.getStrategy().getVariables()[0];
-                    System.out.println(v.isInstantiated());
                     variables.set(hydratePairingsFromResult(v, state, playerRankings));
                 });
         solver.findOptimalSolution(ResolutionPolicy.MINIMIZE, cost);
-        System.out.println(cost);
-        System.out.println(variables);
-
         return variables.get();
     }
 }

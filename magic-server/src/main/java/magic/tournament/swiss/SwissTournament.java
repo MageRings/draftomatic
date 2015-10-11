@@ -34,9 +34,9 @@ public class SwissTournament extends AbstractTournament {
 
     @Override
     protected NavigableSet<Pairing> innerCalculatePairings(TournamentState state,
-                                                           Optional<Map<Player, TieBreakers>> tieBreakers) {
+                                                           Map<Player, TieBreakers> tieBreakers) {
         return calculator
-                .innerCalculatePairings(state, rankPlayers(getCurrentRound(), getTournamentId(), state, tieBreakers));
+                .innerCalculatePairings(state, rankPlayers(getTournamentId(), state, tieBreakers));
     }
 
     @VisibleForTesting
@@ -56,28 +56,17 @@ public class SwissTournament extends AbstractTournament {
      * Returns a map that gives the position of each player relative to the others. The lowest value
      * in the map corresponds to the player that is doing the best.
      *
-     * @param round
      * @param tournamentId
      * @param pointsPerPlayer
      * @param tieBreakers
      * @return
      */
-    private static LinkedHashMap<Player, Integer> rankPlayers(int round,
-                                                              String tournamentId,
+    private static LinkedHashMap<Player, Integer> rankPlayers(String tournamentId,
                                                               TournamentState state,
-                                                              Optional<Map<Player, TieBreakers>> tieBreakers) {
+                                                              Map<Player, TieBreakers> tieBreakers) {
         LinkedHashMap<Player, Integer> rankings = Maps.newLinkedHashMap();
         List<Player> players = Lists.newArrayList(state.getPlayers());
-        // check to see if this is the last round
-        if (tieBreakers.isPresent()) {
-            Collections.sort(players, (a, b) -> tieBreakers.get().get(a).compareTo(tieBreakers.get().get(b)));
-        } else {
-            Collections.sort(players, (a, b) -> {
-                String aBreaker = TieBreakers.generateRandomTieBreaker(tournamentId, a.getId(), Optional.of(round));
-                String bBreaker = TieBreakers.generateRandomTieBreaker(tournamentId, b.getId(), Optional.of(round));
-                return aBreaker.compareTo(bBreaker);
-            });
-        }
+        Collections.sort(players, (a, b) -> tieBreakers.get(a).compareTo(tieBreakers.get(b)));
         Collections.reverse(players);
         for (int i = 0; i < players.size(); i++) {
             rankings.put(players.get(i), i);

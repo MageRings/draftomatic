@@ -59,7 +59,7 @@ public class TournamentState {
             if (dropped.contains(p)) {
                 continue;
             }
-            data.add(new PlayerData(p, points.get(p), alreadyMatched.get(p)));
+            data.add(new PlayerData(p, points.getOrDefault(p, 0), alreadyMatched.getOrDefault(p, Sets.newHashSet())));
         }
         return new TournamentState(data);
     }
@@ -94,4 +94,10 @@ public class TournamentState {
                 .stream()
                 .collect(Collectors.toMap(Entry::getKey, e -> fetcher.apply(e.getValue())));
     }
+
+    @Override
+    public String toString() {
+        return "TournamentState [roundData=" + roundData + "]";
+    }
+
 }

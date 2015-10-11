@@ -28,7 +28,9 @@ public class TournamentManager {
         while (runningTournaments.containsKey(uuid)) {
             uuid = UUID.randomUUID().toString();
         }
-        runningTournaments.put(uuid, new SwissTournament(uuid, rounds, players, new ListSortingPairing()));
+        Tournament t = new SwissTournament(uuid, rounds, players, new ListSortingPairing());
+        t.initFirstRound();
+        runningTournaments.put(uuid, t);
         return uuid;
     }
 
