@@ -3,6 +3,7 @@ module Magic.App.Round {
     export class RoundsController {
         private scope: ng.IScope;
         public tournament: any;
+        public seatings: any;
         public static $inject = ["$scope", "$stateParams", "$http"];
         private tournamentId : string;
         private http : ng.IHttpService;
@@ -14,7 +15,13 @@ module Magic.App.Round {
             this.http.get<any>("api/tournament/status/" + this.tournamentId).then((response) => {
                 console.log(response);
                 this.tournament = response.data.tournamentData;
-                this.tournament.currentRound = response.data.currentRound
+                this.tournament.currentRound = response.data.currentRound;
+                var r1Matches = this.tournament.rounds[0].matches;
+                this.seatings = new Array(r1Matches.length * 2);
+                for (var i = 0; i < r1Matches.length; i++) {
+                    this.seatings[i] = r1Matches[i].pairing.player1.name;
+                    this.seatings[i + r1Matches.length] = r1Matches[i].pairing.player2.name;
+                }
             });
         }
         
