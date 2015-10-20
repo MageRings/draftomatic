@@ -8,10 +8,12 @@ public class Pairing implements Comparable<Pairing> {
 
     private final Player player1;
     private final Player player2;
-    private final int totalPoints;
+    private final int    totalPoints;
 
-    public Pairing(@JsonProperty("player1") Player player1, @JsonProperty("player2") Player player2, @JsonProperty("totalPoints") int totalPoints) {
-        this.totalPoints = totalPoints;
+    public Pairing(@JsonProperty("player1") Player player1,
+                   @JsonProperty("player2") Player player2,
+                   @JsonProperty("totalPoints") int totalPoints) {
+        this.totalPoints = Preconditions.checkNotNull(totalPoints);
         Preconditions.checkNotNull(player1, "Player 1 cannot be null!");
         Preconditions.checkNotNull(player2, "Player 2 cannot be null!");
         if (player1.getId() < player2.getId()) {
@@ -24,24 +26,28 @@ public class Pairing implements Comparable<Pairing> {
     }
 
     public Player getPlayer1() {
-        return player1;
+        return this.player1;
     }
 
     public Player getPlayer2() {
-        return player2;
+        return this.player2;
+    }
+
+    public int getTotalPoints() {
+        return this.totalPoints;
     }
 
     @JsonIgnore
     public boolean isBye() {
-        return player1.equals(Player.BYE);
+        return this.player1.equals(Player.BYE);
     }
 
     @JsonIgnore
     public boolean isPlayer1(Player player) {
-        if (player.equals(player1)) {
+        if (player.equals(this.player1)) {
             return true;
         }
-        if (player.equals(player2)) {
+        if (player.equals(this.player2)) {
             return false;
         }
         throw new IllegalArgumentException("Player " + player + " was not involved in this pairing!");
@@ -50,23 +56,24 @@ public class Pairing implements Comparable<Pairing> {
     @JsonIgnore
     public Player getOpponent(Player player) {
         if (isPlayer1(player)) {
-            return player2;
+            return this.player2;
         }
-        return player1;
+        return this.player1;
     }
 
     @Override
     public String toString() {
-        return "Pairing [player1=" + player1 + ", player2=" + player2 + ", totalPoints=" + totalPoints + "]";
+        return "Pairing [player1=" + this.player1 + ", player2=" + this.player2 + ", totalPoints=" + this.totalPoints
+                + "]";
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((player1 == null) ? 0 : player1.hashCode());
-        result = prime * result + ((player2 == null) ? 0 : player2.hashCode());
-        result = prime * result + totalPoints;
+        result = prime * result + ((this.player1 == null) ? 0 : this.player1.hashCode());
+        result = prime * result + ((this.player2 == null) ? 0 : this.player2.hashCode());
+        result = prime * result + this.totalPoints;
         return result;
     }
 
@@ -82,21 +89,21 @@ public class Pairing implements Comparable<Pairing> {
             return false;
         }
         Pairing other = (Pairing) obj;
-        if (player1 == null) {
+        if (this.player1 == null) {
             if (other.player1 != null) {
                 return false;
             }
-        } else if (!player1.equals(other.player1)) {
+        } else if (!this.player1.equals(other.player1)) {
             return false;
         }
-        if (player2 == null) {
+        if (this.player2 == null) {
             if (other.player2 != null) {
                 return false;
             }
-        } else if (!player2.equals(other.player2)) {
+        } else if (!this.player2.equals(other.player2)) {
             return false;
         }
-        if (totalPoints != other.totalPoints) {
+        if (this.totalPoints != other.totalPoints) {
             return false;
         }
         return true;
@@ -108,11 +115,11 @@ public class Pairing implements Comparable<Pairing> {
             return 1;
         }
         if (this.totalPoints != o.totalPoints) {
-            return Integer.compare(totalPoints, o.totalPoints);
+            return Integer.compare(this.totalPoints, o.totalPoints);
         }
         if (this.player1.compareTo(o.player1) != 0) {
-            return player1.compareTo(o.player1);
+            return this.player1.compareTo(o.player1);
         }
-        return player2.compareTo(o.player2);
+        return this.player2.compareTo(o.player2);
     }
 }

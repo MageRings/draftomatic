@@ -91,6 +91,20 @@ public abstract class AbstractTournament implements Tournament {
         return round;
     }
 
+    private static void validateResult(Match match) {
+        String tooManyWinsError = "Match " + match + " is invalid.  Matches are played until one player has two wins.";
+        Result result = match.getResult();
+        if (result.getP1Wins() > 2 || result.getP2Wins() > 2) {
+            throw new IllegalArgumentException(tooManyWinsError);
+        }
+        if (result.getP1Wins() == 2 && result.getP2Wins() > 1) {
+            throw new IllegalArgumentException(tooManyWinsError);
+        }
+        if (result.getP2Wins() == 2 && result.getP1Wins() > 1) {
+            throw new IllegalArgumentException(tooManyWinsError);
+        }
+    }
+
     /**
      *
      * @param roundRequested
@@ -111,9 +125,29 @@ public abstract class AbstractTournament implements Tournament {
                         "You may only enter results for the current round (" + currentRound + ")!");
             }
             // remove the temporary pairings for the round
-            // TODO: verify that the pairings passed in are legit
-            this.data.getRounds().pollLast();
-            this.data.getRounds().add(new Round(round, true, Sets.newTreeSet(thisRoundResults)));
+            Round expectedRound = this.data.getRounds().pollLast();
+            NavigableSet<Match> correctedInput = Sets.newTreeSet();
+            Map<Pairing, Match> matchesReceived =
+                    thisRoundResults.stream().collect(Collectors.toMap(m -> m.getPairing(), Function.identity()));
+            for (Match m : expectedRound.getMatches()) {
+                Pairing p = m.getPairing();
+                if (!matchesReceived.containsKey(p)) {
+                    throw new IllegalArgumentException("Pairing " + p + " does not have a result!");
+                }
+                Match result = matchesReceived.get(p);
+                if (p.isBye()) {
+                    // note that the by is always player 1
+                    correctedInput.add(new Match(p, new Result(0, 2, 0), false, result.isP2Drop()));
+                } else {
+                    validateResult(result);
+                    correctedInput.add(result);
+                }
+                matchesReceived.remove(p);
+            }
+            if (matchesReceived.size() > 0) {
+                throw new IllegalArgumentException("Match results " + matchesReceived + " were unexpected!");
+            }
+            this.data.getRounds().add(new Round(round, true, correctedInput));
             if (isComplete()) {
                 try {
                     this.db.writeTournament(this.data);
