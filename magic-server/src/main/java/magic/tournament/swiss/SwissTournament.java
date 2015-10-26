@@ -1,5 +1,6 @@
 package magic.tournament.swiss;
 
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -43,6 +44,8 @@ public class SwissTournament extends AbstractTournament {
                         numberOfRounds.isPresent() ? numberOfRounds.get()
                             : SwissTournament.getDefaultNumberOfRounds(input.getPlayers().size()),
                         input,
+                        ZonedDateTime.now(),
+                        null,
                         Sets.newTreeSet()));
         this.calculator = calculator;
     }

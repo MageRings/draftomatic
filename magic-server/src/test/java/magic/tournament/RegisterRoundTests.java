@@ -1,10 +1,12 @@
 package magic.tournament;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.NavigableSet;
 import java.util.Optional;
 import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,6 +106,8 @@ public final class RegisterRoundTests {
                         TOURNAMENT_ID,
                         NUMBER_OF_ROUNDS,
                         new TournamentInput(Format.CONSTRUCTED_CASUAL, "", this.players),
+                        ZonedDateTime.now(),
+                        null,
                         this.rounds));
         try {
             t.registerResults(this.roundRequested, this.roundResults);
