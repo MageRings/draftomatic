@@ -1,6 +1,7 @@
 package magic.tournament;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Map;
 import java.util.NavigableSet;
@@ -150,6 +151,7 @@ public abstract class AbstractTournament implements Tournament {
             this.data.getRounds().add(new Round(round, true, correctedInput));
             if (isComplete()) {
                 try {
+                    this.data.setEndTime(ZonedDateTime.now());
                     this.db.writeTournament(this.data);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
