@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/billbindi/draftomatic.svg?branch=develop)](https://travis-ci.org/billbindi/draftomatic)
+[![Build Status](https://travis-ci.org/MageRings/draftomatic.svg?branch=develop)](https://travis-ci.org/MageRings/draftomatic)
 
 # Basic Usage
 
