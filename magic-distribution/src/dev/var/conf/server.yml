@@ -3,8 +3,8 @@
 # =============================================
 assets:
   overrides:
-    /: ../../../magic-app/build/src
-    /bower_components/: ../../../magic-app/bower_components
+    /: magic-app/build/src
+    /bower_components/: magic-app/bower_components
 
 defaultName: Bruce Wayne
 

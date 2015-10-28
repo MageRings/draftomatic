@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/magic/">
+  <meta charset="UTF-8">
+  <title>Magic</title>
+
+  <!-- build:css app.min.css -->
+  <!-- inject:css -->
+  <!-- endinject -->
+  <!-- self:css -->
+  <link rel="stylesheet" href="app.css">
+  <!-- endinject -->
+  <!-- endbuild -->
+</head>
+<body ng-app="magic-app" >
+
+  <!-- build:js app.min.js -->
+  <!-- inject:js -->
+  <script src="bower_components/jquery/dist/jquery.js"></script>
+  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+  <script src="bower_components/lodash/lodash.js"></script>
+  <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+  <script src="bower_components/ui-autocomplete/autocomplete.js"></script>
+  <script src="bower_components/jquery-ui/jquery-ui.js"></script>
+  <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+  <!-- endinject -->
+  <!-- self:js -->
+  <script src="app.js"></script>
+  <script src="tournamentController.js"></script>
+  <script src="match/matchDirective.js"></script>
+  <script src="round/roundsController.js"></script>
+  <script src="round/roundController.js"></script>
+  <script src="round/roundDirective.js"></script>
+  <script src="draftConfig/draftConfigController.js"></script>
+  <script src="draftConfig/draftConfigDirective.js"></script>
+  <!-- endinject -->
+  <!-- endbuild -->
+  <div class="container">
+    <div class="jumbotron">
+      <h1> DraftTracker </h1>
+      <p> Track drafts, go wild! Featuring DJ Maro and the Mage-Rings.</p>
+    </div>
+    <div ui-view></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<div class="winner-select-wrapper">
+  <div ng-if="!round.complete">
+    <label>{{match.pairing.player1.name}} wins
+      <input type="number" ng-model="match.result.p1Wins" />
+    </label><br>
+    <label>{{match.pairing.player2.name}} wins
+      <input type="number" ng-model="match.result.p2Wins" />
+    </label><br>
+    <label>Draws
+      <input type="number" ng-init="0" ng-model="match.result.draws" />
+    </label><br>
+    <label><input type="checkbox" ng-model="match.p1Drop">Drop {{match.pairing.player1.name}} after this round</label><br>
+    <label><input type="checkbox" ng-model="match.p2Drop">Drop {{match.pairing.player2.name}} after this round</label><br>
+  </div>
+  <div ng-if="round.complete">
+    {{match.pairing.player1.name}} wins : {{match.result.p1Wins}}<br>
+    {{match.pairing.player2.name}} wins : {{match.result.p2Wins}}<br>
+    Draws : {{match.result.draws}}<br> 
+    {{match.p1Drop ? match.pairing.player1.name + " dropped after this round" : ""}}<br ng-if="match.p1Drop">
+    {{match.p2Drop ? match.pairing.player2.name + " dropped after this round" : ""}}<br ng-if="match.p2Drop">
+  </div>
+</div>
