@@ -5,8 +5,8 @@
 .gradle/
 .settings/
 node_modules/
-build/
 bin/
 log/
+data/
 
 magic-distribution/src/dev/data
