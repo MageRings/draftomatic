@@ -1,7 +1,5 @@
 package magic;
 
-import java.io.File;
-
 import com.bazaarvoice.dropwizard.assets.ConfiguredAssetsBundle;
 
 import io.dropwizard.Application;
@@ -20,7 +18,6 @@ import magic.resource.TournamentResource;
 public final class MagicApplication extends Application<MagicConfiguration> {
 
     public static void main(final String[] args) throws Exception {
-        System.out.println(new File("./").getAbsolutePath());
         new MagicApplication().run(args);
     }
 

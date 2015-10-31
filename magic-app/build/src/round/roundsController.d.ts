@@ -10,5 +10,6 @@ declare module Magic.App.Round {
         private pingHeroku();
         pairNextRound(): void;
         getFinalStandings(): void;
+        downloadTournamentData(): void;
     }
 }

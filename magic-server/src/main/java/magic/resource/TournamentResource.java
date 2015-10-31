@@ -1,5 +1,7 @@
 package magic.resource;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.NavigableSet;
 import java.util.Optional;
@@ -11,9 +13,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import magic.data.Match;
 import magic.data.Round;
+import magic.data.tournament.TournamentData;
 import magic.data.tournament.TournamentInput;
 import magic.data.tournament.TournamentStatus;
 import magic.tournament.TieBreakers;
@@ -21,6 +28,8 @@ import magic.tournament.TournamentManager;
 
 @Path("tournament")
 public class TournamentResource {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final TournamentManager manager;
 
@@ -65,4 +74,22 @@ public class TournamentResource {
         return this.manager.getTournament(tournamentId).getStatus();
     }
 
+    @GET
+    @Path("/export/{tournamentId}")
+    @Produces({"application/json"})
+    public Response exportTournament(@PathParam("tournamentId") final String tournamentId) {
+
+        final TournamentData data = manager.getTournament(tournamentId).getStatus().getTournamentData();
+
+        StreamingOutput stream = new StreamingOutput() {
+            @Override
+            public void write(OutputStream output) throws IOException {
+                MAPPER.writeValue(output, data);
+            }
+        };
+
+        return Response.ok(stream, "application/json")
+                .header("Content-disposition", "attachment; filename=" + "Tournament_"+ data.getStartTime().toLocalDate().toString() + ".json")
+                .build();
+    }
 }
