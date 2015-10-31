@@ -2,6 +2,8 @@
 
 # Basic Usage
 
+You can try out a live instance of draftomatic [here](https://draftomatic.herokuapp.com/magic/#/tournament).
+
 ## Run:
         ./gradlew run
 
