@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.Maps;
+
 import magic.data.database.Database;
 import magic.data.database.FileSystemDB;
 import magic.data.tournament.TournamentInput;

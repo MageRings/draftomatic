@@ -33,7 +33,12 @@ module Magic.App.Round {
                 if (scope.tournament && scope.tournament.complete) {
                     clearInterval(myInterval);
                 } else {
-                    scope.http.get<any>("api/tournament/status/" + scope.tournamentId);
+                    scope.http.get<any>("api/tournament/status/" + scope.tournamentId).then((response) => {
+                        // we can get zombie intervals if the user doesn't finish a tournament and starts another
+                        if (window.location.href.indexOf(response.data.tournamentData.id) === -1) {
+                            clearInterval(myInterval);
+                        }
+                    });
                 }
             }, 600000);
         }
@@ -57,6 +62,10 @@ module Magic.App.Round {
                     console.log(response);
                 });
             });
+        }
+        
+        public downloadTournamentData() {
+            window.location.href = "api/tournament/export/" + this.tournamentId;
         }
     }
 
