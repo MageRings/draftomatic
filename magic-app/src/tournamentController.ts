@@ -18,12 +18,11 @@ module Magic.App.Tournament {
         }
         
         public startTournament() {
-            var playerNames = _.pluck(this.tournamentModel.players, "name");
             console.log(this.tournamentModel.players);
             console.log("rounds: " + this.tournamentModel.numRounds);
             this.http.post<any>("api/tournament/register",
             {
-                "players": playerNames,
+                "players": this.tournamentModel.players,
                 "format": this.tournamentModel.format,
                 "code": this.tournamentModel.set,
             },

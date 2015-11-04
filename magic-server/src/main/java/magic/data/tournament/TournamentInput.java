@@ -1,6 +1,6 @@
 package magic.data.tournament;
 
-import java.util.Set;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -14,12 +14,12 @@ public final class TournamentInput {
 
     private final Format      format;
     private final String      code;   // refers to the specific set or sets being played
-    private final Set<Player> players;
+    private final List<Player> players;
 
     public TournamentInput(
                            @JsonProperty("format") Format format,
                            @JsonProperty("code") String code,
-                           @JsonProperty("players") Set<Player> players) {
+                           @JsonProperty("players") List<Player> players) {
         this.format = format;
         this.code = code;
         this.players = players;
@@ -33,7 +33,7 @@ public final class TournamentInput {
         return code;
     }
 
-    public Set<Player> getPlayers() {
+    public List<Player> getPlayers() {
         return players;
     }
 

@@ -2,9 +2,9 @@ package magic.tournament.swiss;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.NavigableSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -60,7 +60,7 @@ public final class FullTournamentTests {
         return Arrays.asList(new Object[][] {
                 {
                         "Basic smoke test",
-                        ImmutableSet.of(MIKE, KIMBERLY, SAM, RED_HULK),
+                        ImmutableList.of(MIKE, KIMBERLY, SAM, RED_HULK),
                         ImmutableList.of(
                                 new Round(1, true, Sets.newTreeSet(ImmutableSet.of(
                                         new Match(p1, p1Win, false, false),
@@ -76,7 +76,7 @@ public final class FullTournamentTests {
                 },
                 {
                         "Drop a player",
-                        ImmutableSet.of(MIKE, KIMBERLY, SAM, RED_HULK),
+                        ImmutableList.of(MIKE, KIMBERLY, SAM, RED_HULK),
                         ImmutableList.of(
                                 new Round(1, true, Sets.newTreeSet(ImmutableSet.of(
                                         new Match(p1, p1Win, false, true),
@@ -93,12 +93,12 @@ public final class FullTournamentTests {
         });
     }
 
-    private final Set<Player>               players;
+    private final List<Player>               players;
     private final Collection<Round>         rounds;
     private final NavigableSet<TieBreakers> tieBreakers;
 
     public FullTournamentTests(String testName,
-                               Set<Player> players,
+                               List<Player> players,
                                Collection<Round> rounds,
                                NavigableSet<TieBreakers> tieBreakers) {
         this.players = players;

@@ -3,9 +3,9 @@ package magic.tournament;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.NavigableSet;
 import java.util.Optional;
-import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -44,7 +45,7 @@ public final class RegisterRoundTests {
         return Arrays.asList(new Object[][] {
                 {
                         "Test tournament complete",
-                        ImmutableSet.of(),
+                        ImmutableList.of(),
                         ImmutableSortedSet.of(
                                 new Round(1, true, Sets.newTreeSet()),
                                 new Round(2, true, Sets.newTreeSet()),
@@ -55,7 +56,7 @@ public final class RegisterRoundTests {
                 },
                 {
                         "Test round not expected",
-                        ImmutableSet.of(),
+                        ImmutableList.of(),
                         ImmutableSortedSet.of(
                                 new Round(1, true, Sets.newTreeSet()),
                                 new Round(2, true, Sets.newTreeSet())),
@@ -65,7 +66,7 @@ public final class RegisterRoundTests {
                 },
                 {
                         "Test illegal wins",
-                        ImmutableSet.of(MIKE, KIMBERLY),
+                        ImmutableList.of(MIKE, KIMBERLY),
                         Sets.newTreeSet(Lists.newArrayList(
                                 new Round(1, false, Sets.newTreeSet(ImmutableSet.of(
                                         new Match(p1, Result.INCOMPLETE, false, false)))))),
@@ -80,14 +81,14 @@ public final class RegisterRoundTests {
         });
     }
 
-    private final Set<Player>         players;
+    private final List<Player>         players;
     private final NavigableSet<Round> rounds;
     private final Optional<Integer>   roundRequested;
     private final Collection<Match>   roundResults;
     private final String              errorExpected;
 
     public RegisterRoundTests(String testName,
-                              Set<Player> players,
+                              List<Player> players,
                               NavigableSet<Round> rounds,
                               Optional<Integer> roundRequested,
                               Collection<Match> roundResults,
