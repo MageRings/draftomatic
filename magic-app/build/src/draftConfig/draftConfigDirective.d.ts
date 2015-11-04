@@ -5,6 +5,7 @@ declare module Magic.App.DraftConfig {
         restrict: string;
         scope: {
             tournamentModel: string;
+            allPlayers: string;
         };
         templateUrl: string;
     }

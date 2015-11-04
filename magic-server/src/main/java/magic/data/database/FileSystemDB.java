@@ -8,14 +8,20 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
+import jersey.repackaged.com.google.common.collect.Sets;
 import magic.data.Deck;
 import magic.data.Format;
 import magic.data.Player;
@@ -34,12 +40,12 @@ public final class FileSystemDB implements Database {
     private static final String DELIMETER = "-----";
     private static final String LINE_END  = "\n";
 
-    private static final AtomicLong PLAYER_ID_COUNTER = readPlayerId();
     private static final AtomicLong DECK_ID_COUNTER   = readDeckId();
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private static void initDatabase() throws IOException {
+    private void initDatabase() throws IOException {
         if (Files.notExists(DatabaseConstants.DATA)) {
             Files.createDirectories(DatabaseConstants.DATA);
         }
@@ -47,7 +53,7 @@ public final class FileSystemDB implements Database {
             throw new RuntimeException("Data directory " + DatabaseConstants.DATA + " is a file!");
         }
         if (Files.notExists(DatabaseConstants.PLAYERS)) {
-            Files.createFile(DatabaseConstants.PLAYERS);
+            mapper.writeValue(DatabaseConstants.PLAYERS.toFile(), ImmutableList.of());
         }
         if (Files.notExists(DatabaseConstants.DECKS)) {
             Files.createFile(DatabaseConstants.DECKS);
@@ -64,16 +70,8 @@ public final class FileSystemDB implements Database {
      * BEGIN Table IDs
      ***************************************************/
 
-    public static long nextPlayerId() {
-        return PLAYER_ID_COUNTER.incrementAndGet();
-    }
-
     public static long nextDeckId() {
         return DECK_ID_COUNTER.incrementAndGet();
-    }
-
-    private static AtomicLong readPlayerId() {
-        return readId(DatabaseConstants.PLAYERS, DatabaseConstants.PLAYERS_ID);
     }
 
     private static AtomicLong readDeckId() {
@@ -100,28 +98,6 @@ public final class FileSystemDB implements Database {
      * BEGIN Reads
      ***************************************************/
 
-    public static Player readPlayerFromId(long id) throws IOException {
-        Optional<String> playerLine = matchLineId(DatabaseConstants.PLAYERS, DatabaseConstants.PLAYERS_ID, id);
-        if (playerLine.isPresent()) {
-            return parsePlayerFromLine(playerLine.get());
-        } else {
-            throw new RuntimeException("Could not parse player with id: " + id);
-        }
-    }
-
-    public static List<Player> readPlayers() throws IOException {
-        return lines(DatabaseConstants.PLAYERS)
-                .filter(line -> Long.parseLong(line.split(DELIMETER)[DatabaseConstants.PLAYERS_ID]) != 0)
-                .map(line -> parsePlayerFromLine(line))
-                .collect(Collectors.toList());
-    }
-
-    private static Player parsePlayerFromLine(String line) {
-        String[] parts = line.split(DELIMETER);
-        long id = Long.parseLong(parts[DatabaseConstants.PLAYERS_ID]);
-        String name = parts[DatabaseConstants.PLAYERS_NAME];
-        return new Player(id, name);
-    }
 
     public static Deck readDeckFromId(long id) throws IOException {
         Optional<String> deckLine = matchLineId(DatabaseConstants.DECKS, DatabaseConstants.DECKS_ID, id);
@@ -147,8 +123,8 @@ public final class FileSystemDB implements Database {
         return new Deck(id, colors, archetype, format);
     }
 
-    public static TournamentData readTournamentFromId(String id) throws IOException {
-        return MAPPER.readValue(new File(DatabaseConstants.TOURNAMENTS.toFile(), id + ".json"), TournamentData.class);
+    public TournamentData readTournamentFromId(String id) throws IOException {
+        return mapper.readValue(new File(DatabaseConstants.TOURNAMENTS.toFile(), id + ".json"), TournamentData.class);
     }
 
     private static Optional<String> matchLineId(Path file, int matchPart, long id) throws IOException {
@@ -183,15 +159,6 @@ public final class FileSystemDB implements Database {
      * BEGIN Writes
      ***************************************************/
 
-    public static boolean addPlayer(Player player) {
-        return append(DatabaseConstants.PLAYERS, formatPlayer(player));
-    }
-
-    private static String formatPlayer(Player player) {
-        return player.getId() + DELIMETER +
-                player.getName() + LINE_END;
-    }
-
     public static boolean addDeck(Deck deck) {
         return append(DatabaseConstants.DECKS, formatDeck(deck));
     }
@@ -205,7 +172,7 @@ public final class FileSystemDB implements Database {
 
     @Override
     public void writeTournament(TournamentData tournament) throws IOException {
-        MAPPER.writerWithDefaultPrettyPrinter()
+        mapper.writerWithDefaultPrettyPrinter()
                 .writeValue(new File(DatabaseConstants.TOURNAMENTS.toFile(), tournament.getId() + ".json"), tournament);
     }
 
@@ -219,8 +186,22 @@ public final class FileSystemDB implements Database {
         }
     }
 
-    /**************************************************
-     * END Writes
-     ***************************************************/
+    @Override
+    public Set<Player> getPlayers() throws IOException {
+        return mapper.readValue(DatabaseConstants.PLAYERS.toFile(), new TypeReference<Set<Player>>(){});
+    }
+
+    @Override
+    public Set<Player> registerPlayers(List<String> playerNames) throws IOException {
+        lock.writeLock().lock();;
+        try {
+            Set<Player> currentPlayers = getPlayers();
+            Set<Player> addedPlayers = DbUtils.registerPlayers(playerNames, currentPlayers);
+            mapper.writeValue(DatabaseConstants.PLAYERS.toFile(), Sets.union(addedPlayers, currentPlayers));
+            return addedPlayers;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
 
 }

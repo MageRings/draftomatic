@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-import magic.data.database.FileSystemDB;
-
 public class Player implements Comparable<Player> {
 
     public static final Player BYE = new Player();
@@ -19,14 +17,9 @@ public class Player implements Comparable<Player> {
         this.name = "BYE";
     }
 
-    public Player(String name) {
-        this(FileSystemDB.nextPlayerId(), name);
-    }
-
     @JsonCreator
     public Player(@JsonProperty("id") long id,
                   @JsonProperty("name") String name) {
-        Preconditions.checkArgument(id > -1, "Player id must be greater than -1.");
         Preconditions.checkArgument(isValidName(name), "Invalid name: " + name);
 
         this.id = id;

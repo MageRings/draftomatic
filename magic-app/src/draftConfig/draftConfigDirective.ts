@@ -5,7 +5,8 @@ module Magic.App.DraftConfig {
         public controllerAs = "ctrl";
         public restrict = "E";
         public scope = {
-            tournamentModel: "="
+            tournamentModel: "=",
+            allPlayers: "="
         };
         public templateUrl = "draftConfig/draftConfigTemplate.html";
     }

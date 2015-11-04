@@ -5,6 +5,10 @@ import com.bazaarvoice.dropwizard.assets.ConfiguredAssetsBundle;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import magic.data.database.Database;
+import magic.data.database.FileSystemDB;
+import magic.data.database.HerokuDB;
+import magic.data.database.NoopDB;
 import magic.exceptions.CatchAllExceptionMapper;
 import magic.exceptions.IllegalArgumentExceptionMapper;
 import magic.exceptions.TournamentNotFoundExceptionMapper;
@@ -28,9 +32,23 @@ public final class MagicApplication extends Application<MagicConfiguration> {
 
     @Override
     public void run(final MagicConfiguration configuration, final Environment environment) {
-        environment.jersey().register(new PlayerResource());
+        Database db;
+    	switch (configuration.getDatabaseType()) {
+    	case "heroku":
+    		try {
+    			db = new HerokuDB(configuration.getDatabaseUri());
+    		} catch (Exception e) {
+    			throw new RuntimeException(e);
+    		}
+    	case "noop": 
+    		db = NoopDB.NOOPDB;
+    	default: 
+    			db = new FileSystemDB();
+    	}
+
+        environment.jersey().register(new PlayerResource(db));
         environment.jersey().register(new DeckResource());
-        environment.jersey().register(new TournamentResource());
+        environment.jersey().register(new TournamentResource(db));
 
         // exception mappers
         environment.jersey().register(new CatchAllExceptionMapper());

@@ -15,6 +15,7 @@ module Magic.App.Round {
             this.http.get<any>("api/tournament/status/" + this.tournamentId).then((response) => {
                 console.log(response);
                 this.tournament = response.data.tournamentData;
+                this.tournament.complete = response.data.complete;
                 this.tournament.currentRound = response.data.currentRound;
                 var r1Matches = this.tournament.rounds[0].matches;
                 this.seatings = new Array(r1Matches.length * 2);
