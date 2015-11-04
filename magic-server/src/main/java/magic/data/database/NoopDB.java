@@ -1,8 +1,11 @@
 package magic.data.database;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import magic.data.Player;
 import magic.data.tournament.TournamentData;
 
 public final class NoopDB implements Database {
@@ -18,6 +21,16 @@ public final class NoopDB implements Database {
 
     @Override
     public Map<String, TournamentData> loadTournaments() throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Player> getPlayers() throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Player> registerPlayers(List<String> playerNames) throws IOException {
         throw new UnsupportedOperationException();
     }
 

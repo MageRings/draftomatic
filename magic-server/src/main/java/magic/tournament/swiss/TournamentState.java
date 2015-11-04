@@ -32,7 +32,7 @@ public class TournamentState {
         }
     }
 
-    public static TournamentState createTournamentState(Set<Player> players, NavigableSet<Round> rounds) {
+    public static TournamentState createTournamentState(List<Player> players, NavigableSet<Round> rounds) {
         Map<Player, Integer> points = Maps.newHashMap();
         Map<Player, Set<Player>> alreadyMatched = Maps.newHashMap();
         Set<Player> dropped = Sets.newHashSet();
