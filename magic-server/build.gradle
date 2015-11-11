@@ -20,7 +20,7 @@ dependencies {
         exclude group: 'io.dropwizard'
     }
     compile 'com.google.guava:guava:18.0'
-    compile 'postgresql:postgresql:9.0-801.jdbc4'
+    compile 'org.postgresql:postgresql:9.4-1205-jdbc42'
 
     compile 'org.choco-solver:choco-solver:3.3.0'
     compile 'org.choco-solver:choco-graph:3.3.0'

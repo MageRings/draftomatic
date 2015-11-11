@@ -6,7 +6,6 @@ import com.bazaarvoice.dropwizard.assets.AssetsBundleConfiguration;
 import com.bazaarvoice.dropwizard.assets.AssetsConfiguration;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 
 import io.dropwizard.Configuration;
 
@@ -16,28 +15,30 @@ import io.dropwizard.Configuration;
 public final class MagicConfiguration extends Configuration
         implements AssetsBundleConfiguration {
 
-    private static final String DEFAULT_VALUE = "Sarah Kerrigan";
-
     private final AssetsConfiguration assets;
-    private final String defaultName;
+    private final String databaseType;
+    private final String databaseUri;
 
     @JsonCreator
     public MagicConfiguration(
             @JsonProperty("assets") final AssetsConfiguration assets,
-            @JsonProperty("defaultName") final Optional<String> defaultName) {
-        checkNotNull(assets);
-        checkNotNull(defaultName);
-
-        this.assets = assets;
-        this.defaultName = defaultName.or(DEFAULT_VALUE);
-    }
-
-    public String getDefaultName() {
-        return this.defaultName;
+            @JsonProperty("databaseType") final String databaseType,
+            @JsonProperty("databaseUri") final String databaseUri) {
+        this.assets = checkNotNull(assets);
+        this.databaseType = databaseType;
+        this.databaseUri = databaseUri;
     }
 
     @Override
     public AssetsConfiguration getAssetsConfiguration() {
         return assets;
     }
+
+	public String getDatabaseType() {
+		return databaseType;
+	}
+
+	public String getDatabaseUri() {
+		return databaseUri;
+	}
 }

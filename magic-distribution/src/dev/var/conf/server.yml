@@ -6,7 +6,8 @@ assets:
     /: magic-app/build/src
     /bower_components/: magic-app/bower_components
 
-defaultName: Bruce Wayne
+databaseType: "filesystem"
+databaseUri: "n/a"
 
 # =============================================
 #                Server Settings

@@ -9,6 +9,7 @@ module Magic.App.DraftConfig {
 
     export interface IPlayer {
         name: string;
+        id: number;
     }
     
     export interface ISet {
@@ -23,19 +24,22 @@ module Magic.App.DraftConfig {
     export interface IDraftConfigScope extends ng.IScope {
         draftConfigController: IDraftConfigController;
         tournamentModel: ITournamentModel;
+        allPlayers: IPlayer[];
     }
 
     export class DraftConfigController implements IDraftConfigController {
         private $scope: IDraftConfigScope;
         public formats: string[];
         public sets: ISet[];
-        public pendingPlayerName: string;
-        private currentId: number;
+        public pendingPlayer: any;
         public static $inject = ["$scope", "$http"];
         constructor($scope: IDraftConfigScope, $http: ng.IHttpService) {
-            $http.get<any>("api/player/list").then((response) => console.log(response));
             this.$scope = $scope;
             this.$scope.draftConfigController = this;
+            $http.get<any>("api/players/list").then((response) => {
+                console.log(response)
+                this.$scope.allPlayers = response.data;
+            });
             this.sets = [
                 {
                     name: "Magic: Origins",
@@ -57,16 +61,25 @@ module Magic.App.DraftConfig {
             this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
             "LIMITED_TEAM_SEALED", "CONSTRUCTED_CASUAL", "CONSTRUCTED_STANDARD", "CONSTRUCTED_MODERN",
             "CONSTRUCTED_LEGACY", "CONSTRUCTED_VINTAGE"]
-            this.currentId = 1;
         }
 
         public addPendingPlayer() {
-            if (this.pendingPlayerName.trim().length > 0) {
-                var newPlayer = { name: this.pendingPlayerName, id: this.currentId };
-                this.currentId += 1;
-                this.$scope.tournamentModel.players.push(newPlayer);
-                this.pendingPlayerName = "";
+            console.log(this.pendingPlayer);
+            if (typeof this.pendingPlayer === 'string') {
+                // if the new player is specified by the user, it will show up as a string
+                if ((this.pendingPlayer).length > 0) {
+                    this.$scope.tournamentModel.players.push({
+                        name: this.pendingPlayer,
+                        id: -1,
+                    });
+                }
+            } else if (this.pendingPlayer.name.trim().length > 0) {
+                this.$scope.tournamentModel.players.push({
+                    name: this.pendingPlayer.name,
+                    id: this.pendingPlayer.id
+                });
             };
+            this.pendingPlayer = "";
         }
 
         public removePlayer(player: IPlayer) {

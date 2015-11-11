@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import magic.data.Match;
 import magic.data.Round;
+import magic.data.database.Database;
 import magic.data.tournament.TournamentData;
 import magic.data.tournament.TournamentInput;
 import magic.data.tournament.TournamentStatus;
@@ -33,8 +34,8 @@ public class TournamentResource {
 
     private final TournamentManager manager;
 
-    public TournamentResource() {
-        this.manager = new TournamentManager();
+    public TournamentResource(Database db) {
+        this.manager = new TournamentManager(db);
     }
 
     private String jsonifyString(String arg) {

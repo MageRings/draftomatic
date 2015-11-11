@@ -1,35 +1,26 @@
 package magic.resource;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
 
 import magic.data.Player;
-import magic.data.database.FileSystemDB;
+import magic.data.database.Database;
 
-@Path("/player")
+@Path("/players")
 public class PlayerResource {
-
-    @POST
-    @Path("/register")
-    public void registerPlayer(@QueryParam("player") Player player) {
-        FileSystemDB.addPlayer(player);
-    }
+	
+	private final Database db;
+	
+	public PlayerResource(Database db) {
+		this.db = db;
+	}
 
     @GET
     @Path("/list")
-    public List<Player> listPlayers() throws IOException {
-        return FileSystemDB.readPlayers();
-    }
-
-    @GET
-    @Path("/list/{id}")
-    public Player listPlayer(@PathParam("id") Long id) throws IOException {
-        return FileSystemDB.readPlayerFromId(id);
+    public Set<Player> listPlayers() throws IOException {
+        return this.db.getPlayers();
     }
 }
