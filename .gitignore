@@ -7,6 +7,6 @@
 node_modules/
 bin/
 log/
-data/
+/data/
 
 magic-distribution/src/dev/data
