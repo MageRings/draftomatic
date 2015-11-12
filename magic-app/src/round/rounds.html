@@ -7,9 +7,12 @@
 </div>
 <div ng-repeat="round in roundsController.tournament.rounds.slice(0, roundsController.tournament.currentRound+1)">
   <round round="round"></round>
-  <div ng-if="$index === roundsController.tournament.currentRound-1 && !roundsController.tournament.complete">
-    <div ng-if="roundsController.tournament.numberOfRounds == roundsController.tournament.currentRound" ng-click="roundsController.getFinalStandings()">final standings</div>
-    <div ng-if="roundsController.tournament.numberOfRounds != roundsController.tournament.currentRound" ng-click="roundsController.pairNextRound()">next round</div>
+  <div ng-if="$index === roundsController.tournament.currentRound-1">
+    <button ng-click="roundsController.undoLastRound()">undo last round</button>
+    <div ng-if="!roundsController.tournament.complete">
+      <button ng-if="roundsController.tournament.numberOfRounds == roundsController.tournament.currentRound" ng-click="roundsController.getFinalStandings()">final standings</button>
+      <button ng-if="roundsController.tournament.numberOfRounds != roundsController.tournament.currentRound" ng-click="roundsController.pairNextRound()">next round</button>
+    </div>
   </div>
 </div>
 <button ng-click="roundsController.downloadTournamentData();">Export tournament</button>

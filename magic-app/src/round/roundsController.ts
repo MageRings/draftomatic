@@ -48,9 +48,21 @@ module Magic.App.Round {
             var latestRound = this.tournament.rounds[this.tournament.currentRound-1];
             latestRound.complete = true;
             this.http.put<any>("api/tournament/results/" + this.tournamentId, latestRound.matches).then((response) => {
-                console.log(response);
                 this.tournament.rounds.push(response.data);
                 this.tournament.currentRound = response.data.number;
+            });
+        }
+        
+        public undoLastRound() {
+            this.http.delete<any>("api/tournament/round/" + this.tournamentId).then((response) => {
+                this.tournament.complete = false;
+                var latestRound = this.tournament.rounds[this.tournament.currentRound-1];
+                if (!latestRound.complete) {
+                    this.tournament.rounds.pop();
+                }
+                this.tournament.rounds.pop();
+                this.tournament.rounds.push(response.data);
+                this.tournament.currentRound = this.tournament.rounds.length;
             });
         }
         
