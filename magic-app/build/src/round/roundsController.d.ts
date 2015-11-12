@@ -9,6 +9,7 @@ declare module Magic.App.Round {
         constructor($scope: ng.IScope, $stateParams: ng.ui.IStateParamsService, $http: ng.IHttpService);
         private pingHeroku();
         pairNextRound(): void;
+        undoLastRound(): void;
         getFinalStandings(): void;
         downloadTournamentData(): void;
     }

@@ -8,7 +8,7 @@ public class Round implements Comparable<Round> {
 
     private final int number;
     private final NavigableSet<Match> matches;
-    private final boolean complete;
+    private boolean complete;
 
     public Round(
             @JsonProperty("number") int number,
@@ -22,11 +22,17 @@ public class Round implements Comparable<Round> {
     public int getNumber() {
         return number;
     }
+
     public NavigableSet<Match> getMatches() {
         return matches;
     }
+
     public boolean isComplete() {
         return complete;
+    }
+    
+    public void setComplete(boolean complete) {
+    	this.complete = complete;
     }
 
     @Override

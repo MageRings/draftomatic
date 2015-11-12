@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.NavigableSet;
 import java.util.Optional;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -57,6 +58,13 @@ public class TournamentResource {
                                  @QueryParam("round") Integer round,
                                  Collection<Match> results) {
         return this.manager.getTournament(tournamentId).registerResults(Optional.ofNullable(round), results);
+    }
+
+    @DELETE
+    @Path("/round/{tournamentId}")
+    @Produces("application/json")
+    public Round registerResults(@PathParam("tournamentId") String tournamentId) {
+        return this.manager.getTournament(tournamentId).undoLastRound();
     }
 
     @GET

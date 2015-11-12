@@ -107,6 +107,25 @@ public abstract class AbstractTournament implements Tournament {
     }
 
     /**
+     * undoes the last complete round (if an incomplete round is present it is also reset)
+     */
+    @Override
+    public Round undoLastRound() {
+        this.lock.writeLock().lock();
+        try {
+            Round currentRound = this.data.getRounds().last();
+            if (!currentRound.isComplete() && this.data.getRounds().size() > 1) {
+            	this.data.getRounds().pollLast();
+            	currentRound = this.data.getRounds().last();
+            }
+            currentRound.setComplete(false);
+            return currentRound;
+        } finally {
+            this.lock.writeLock().unlock();
+        }
+    }
+
+    /**
      *
      * @param roundRequested
      * @param thisRoundResults
@@ -137,7 +156,7 @@ public abstract class AbstractTournament implements Tournament {
                 }
                 Match result = matchesReceived.get(p);
                 if (p.isBye()) {
-                    // note that the by is always player 1
+                    // note that the bye is always player 1
                     correctedInput.add(new Match(p, new Result(0, 2, 0), false, result.isP2Drop()));
                 } else {
                     validateResult(result);

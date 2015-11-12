@@ -13,6 +13,8 @@ public interface Tournament {
     TournamentStatus getStatus();
 
     void initFirstRound();
+    
+    Round undoLastRound();
 
     Round registerResults(Optional<Integer> roundRequested, Collection<Match> thisRoundResults);
 
