@@ -14,6 +14,7 @@ import magic.exceptions.IllegalArgumentExceptionMapper;
 import magic.exceptions.TournamentNotFoundExceptionMapper;
 import magic.resource.DeckResource;
 import magic.resource.PlayerResource;
+import magic.resource.SourceResource;
 import magic.resource.TournamentResource;
 
 /**
@@ -33,8 +34,6 @@ public final class MagicApplication extends Application<MagicConfiguration> {
     @Override
     public void run(final MagicConfiguration configuration, final Environment environment) {
         Database db;
-        System.out.println(configuration.getDatabaseType());
-        System.out.println(configuration.getDatabaseUri());
     	switch (configuration.getDatabaseType()) {
     	case "heroku":
     		try {
@@ -53,6 +52,7 @@ public final class MagicApplication extends Application<MagicConfiguration> {
         environment.jersey().register(new PlayerResource(db));
         environment.jersey().register(new DeckResource());
         environment.jersey().register(new TournamentResource(db));
+        environment.jersey().register(new SourceResource());
 
         // exception mappers
         environment.jersey().register(new CatchAllExceptionMapper());
