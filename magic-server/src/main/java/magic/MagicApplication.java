@@ -33,17 +33,21 @@ public final class MagicApplication extends Application<MagicConfiguration> {
     @Override
     public void run(final MagicConfiguration configuration, final Environment environment) {
         Database db;
+        System.out.println(configuration.getDatabaseType());
+        System.out.println(configuration.getDatabaseUri());
     	switch (configuration.getDatabaseType()) {
     	case "heroku":
     		try {
     			db = new HerokuDB(configuration.getDatabaseUri());
+    			break;
     		} catch (Exception e) {
     			throw new RuntimeException(e);
     		}
     	case "noop": 
     		db = NoopDB.NOOPDB;
+    		break;
     	default: 
-    			db = new FileSystemDB();
+    		db = new FileSystemDB();
     	}
 
         environment.jersey().register(new PlayerResource(db));
