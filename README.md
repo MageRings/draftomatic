@@ -15,6 +15,12 @@ You can try out a live instance of draftomatic [here](https://draftomatic.heroku
 Draftomatic seeks to provide a client-server architecture for swiss pairings.  Ideally this will disassociate the relatively complicated logic of pairings players from the acts of displaying the
 pairings or recording results.
 
+## License
+
+Draftomatic is licensed under the GNU Affero GPL v3.0. See [this link](http://blog.mongodb.org/post/103832439/the-agpl) for more information.  This license was chosen because draftomatic is intended to act as a
+standalone application rather than as a library.  If you think that some portion of the project would be useful to you
+under a more permissive license please let us know.
+
 #Developing
 
 1. Run `./gradlew eclipse`.  This will fetch the java dependencies
