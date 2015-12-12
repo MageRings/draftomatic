@@ -55,7 +55,7 @@ module Magic.App.DraftConfig {
                 },
                 {
                     name: "Modern Masters 2015",
-                    value: "mmb"
+                    value: "mm2"
                 }
             ];
             this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",

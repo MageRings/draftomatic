@@ -24,24 +24,6 @@ module Magic.App.Round {
                     this.seatings[i + r1Matches.length] = r1Matches[i].pairing.player2.name;
                 }
             });
-            this.pingHeroku();
-        }
-        
-        //for heroku, we need to ping the server to keep it from falling asleep every 30 minutes while the tournament is running
-        private pingHeroku() {
-            var scope = this;
-            var myInterval = setInterval(function () {
-                if (scope.tournament && scope.tournament.complete) {
-                    clearInterval(myInterval);
-                } else {
-                    scope.http.get<any>("api/tournament/status/" + scope.tournamentId).then((response) => {
-                        // we can get zombie intervals if the user doesn't finish a tournament and starts another
-                        if (window.location.href.indexOf(response.data.tournamentData.id) === -1) {
-                            clearInterval(myInterval);
-                        }
-                    });
-                }
-            }, 600000);
         }
         
         public pairNextRound() {
