@@ -39,7 +39,7 @@ public class TournamentStatus {
         return tournamentData;
     }
 
-    public NavigableSet<TieBreakers> finalStandings() {
+    public NavigableSet<TieBreakers> getFinalStandings() {
         return finalStandings;
     }
 }

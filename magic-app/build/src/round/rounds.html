@@ -13,6 +13,33 @@
       <button ng-if="roundsController.tournament.numberOfRounds == roundsController.tournament.currentRound" ng-click="roundsController.getFinalStandings()">final standings</button>
       <button ng-if="roundsController.tournament.numberOfRounds != roundsController.tournament.currentRound" ng-click="roundsController.pairNextRound()">next round</button>
     </div>
+    <div ng-if="roundsController.tournament.complete">
+    <br>
+      <table border="0" style="width: 700px;">
+      <thead>
+      <tr>
+      <th>Player</th>
+      <th>Match Points</th>
+      <th>Opponent Match Win %</th>
+      <th>Game Win %</th>
+      <th>Opponent Game Win %</th>
+      </tr>
+      </thead>
+      <tr ng-repeat="result in roundsController.tournament.finalStandings.slice().reverse()">
+      <td ng-if="$odd" style="background-color:#f1f1f1">{{ result.player.name }}</td>
+      <td ng-if="$even" >{{ result.player.name }}</td>
+      <td ng-if="$odd" style="background-color:#f1f1f1">{{ result.matchPoints }}</td>
+      <td ng-if="$even" >{{ result.matchPoints }}</td>
+      <td ng-if="$odd" style="background-color:#f1f1f1">{{ result.opponentMatchWinPercentage }}</td>
+      <td ng-if="$even" >{{ result.opponentMatchWinPercentage }}</td>
+      <td ng-if="$odd" style="background-color:#f1f1f1">{{ result.gameWinPercentage }}</td>
+      <td ng-if="$even" >{{ result.gameWinPercentage }}</td>
+      <td ng-if="$odd" style="background-color:#f1f1f1">{{ result.opponentGameWinPercentage }}</td>
+      <td ng-if="$even" >{{ result.opponentGameWinPercentage }}</td>
+      </tr>
+      </table> 
+      <br>
+    </div>
   </div>
 </div>
 <button ng-click="roundsController.downloadTournamentData();">Export tournament</button>

@@ -17,6 +17,7 @@ module Magic.App.Round {
                 this.tournament = response.data.tournamentData;
                 this.tournament.complete = response.data.complete;
                 this.tournament.currentRound = response.data.currentRound;
+                this.tournament.finalStandings = response.data.finalStandings;
                 var r1Matches = this.tournament.rounds[0].matches;
                 this.seatings = new Array(r1Matches.length * 2);
                 for (var i = 0; i < r1Matches.length; i++) {
@@ -54,7 +55,7 @@ module Magic.App.Round {
             latestRound.complete = true;
             this.http.put<any>("api/tournament/results/" + this.tournamentId, latestRound.matches).then(() => {
                 this.http.get<any>("api/tournament/standings/" + this.tournamentId, {round : latestRound.number}).then((response) => {
-                    console.log(response);
+                    this.tournament.finalStandings = response.data
                 });
             });
         }
