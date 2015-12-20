@@ -3,9 +3,11 @@ package magic.tournament;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
@@ -95,6 +97,10 @@ public abstract class AbstractTournament implements Tournament {
     private static void validateResult(Match match) {
         String tooManyWinsError = "Match " + match + " is invalid.  Matches are played until one player has two wins.";
         Result result = match.getResult();
+        if (result.getP1Wins() < 0 || result.getP2Wins() < 0) {
+            throw new IllegalArgumentException("Match " + match + " is invalid.  Players can not have a " +
+                    "negative number of wins.");
+        }
         if (result.getP1Wins() > 2 || result.getP2Wins() > 2) {
             throw new IllegalArgumentException(tooManyWinsError);
         }
@@ -115,8 +121,8 @@ public abstract class AbstractTournament implements Tournament {
         try {
             Round currentRound = this.data.getRounds().last();
             if (!currentRound.isComplete() && this.data.getRounds().size() > 1) {
-            	this.data.getRounds().pollLast();
-            	currentRound = this.data.getRounds().last();
+                this.data.getRounds().pollLast();
+                currentRound = this.data.getRounds().last();
             }
             currentRound.setComplete(false);
             return currentRound;
@@ -147,25 +153,16 @@ public abstract class AbstractTournament implements Tournament {
             // remove the temporary pairings for the round
             Round expectedRound = this.data.getRounds().pollLast();
             NavigableSet<Match> correctedInput = Sets.newTreeSet();
-            Map<Pairing, Match> matchesReceived =
-                    thisRoundResults.stream().collect(Collectors.toMap(m -> m.getPairing(), Function.identity()));
-            for (Match m : expectedRound.getMatches()) {
+            validateMatchesReceived(expectedRound.getMatches(), thisRoundResults);
+            for (Match m : thisRoundResults) {
                 Pairing p = m.getPairing();
-                if (!matchesReceived.containsKey(p)) {
-                    throw new IllegalArgumentException("Pairing " + p + " does not have a result!");
-                }
-                Match result = matchesReceived.get(p);
                 if (p.isBye()) {
                     // note that the bye is always player 1
-                    correctedInput.add(new Match(p, new Result(0, 2, 0), false, result.isP2Drop()));
+                    correctedInput.add(new Match(p, new Result(0, 2, 0), false, m.isP2Drop()));
                 } else {
-                    validateResult(result);
-                    correctedInput.add(result);
+                    validateResult(m);
+                    correctedInput.add(m);
                 }
-                matchesReceived.remove(p);
-            }
-            if (matchesReceived.size() > 0) {
-                throw new IllegalArgumentException("Match results " + matchesReceived + " were unexpected!");
             }
             this.data.getRounds().add(new Round(round, true, correctedInput));
             if (isComplete()) {
@@ -187,6 +184,36 @@ public abstract class AbstractTournament implements Tournament {
                                     this.data.getRounds())));
         } finally {
             this.lock.writeLock().unlock();
+        }
+    }
+
+    private static void validateMatchesReceived(NavigableSet<Match> matchesExpected,
+                                                Collection<Match> matchesReceived) {
+        if (matchesReceived.size() != matchesExpected.size()) {
+            throw new IllegalArgumentException("Received " + matchesReceived.size() + " matches, but expected " +
+                    matchesExpected.size() + ".");
+        }
+        Set<Player> playersExpected = matchesExpected.stream().collect(
+                HashSet::new,
+                (set, match) -> {
+                    set.add(match.getPairing().getPlayer1());
+                    set.add(match.getPairing().getPlayer2());
+                } ,
+                (finalSet, set) -> finalSet.addAll(set));
+        for (Match m : matchesReceived) {
+            Player p1 = m.getPairing().getPlayer1();
+            Player p2 = m.getPairing().getPlayer2();
+            if (!playersExpected.contains(p1)) {
+                throw new IllegalArgumentException("Did not expect to see player " + p1 + " in the results!");
+            }
+            playersExpected.remove(p1);
+            if (!playersExpected.contains(p2)) {
+                throw new IllegalArgumentException("Did not expect to see player " + p2 + " in the results!");
+            }
+            playersExpected.remove(p2);
+        }
+        if (playersExpected.size() != 0) {
+            throw new IllegalArgumentException("Missing results for players " + playersExpected + ".");
         }
     }
 

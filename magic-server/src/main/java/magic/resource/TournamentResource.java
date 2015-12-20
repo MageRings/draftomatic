@@ -1,7 +1,5 @@
 package magic.resource;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collection;
 import java.util.NavigableSet;
 import java.util.Optional;
@@ -52,7 +50,7 @@ public class TournamentResource {
     }
 
     @PUT
-    @Path("/results/{tournamentId}")
+    @Path("/round/{tournamentId}")
     @Produces("application/json")
     public Round registerResults(@PathParam("tournamentId") String tournamentId,
                                  @QueryParam("round") Integer round,
@@ -85,20 +83,18 @@ public class TournamentResource {
 
     @GET
     @Path("/export/{tournamentId}")
-    @Produces({"application/json"})
+    @Produces({ "application/json" })
     public Response exportTournament(@PathParam("tournamentId") final String tournamentId) {
 
-        final TournamentData data = manager.getTournament(tournamentId).getStatus().getTournamentData();
+        final TournamentData data = this.manager.getTournament(tournamentId).getStatus().getTournamentData();
 
-        StreamingOutput stream = new StreamingOutput() {
-            @Override
-            public void write(OutputStream output) throws IOException {
-                MAPPER.writeValue(output, data);
-            }
-        };
+        StreamingOutput stream = output -> MAPPER.writeValue(output, data);
 
         return Response.ok(stream, "application/json")
-                .header("Content-disposition", "attachment; filename=" + "Tournament_"+ data.getStartTime().toLocalDate().toString() + ".json")
+                .header(
+                        "Content-disposition",
+                        "attachment; filename=" + "Tournament_" + data.getStartTime().toLocalDate().toString()
+                                + ".json")
                 .build();
     }
 }

@@ -3,6 +3,7 @@ package magic.tournament;
 import java.util.Map;
 import java.util.NavigableSet;
 
+import jersey.repackaged.com.google.common.collect.Sets;
 import magic.data.Pairing;
 import magic.data.Player;
 import magic.data.database.NoopDB;
@@ -22,7 +23,7 @@ public class DummyTournament extends AbstractTournament {
     @Override
     protected NavigableSet<Pairing> innerCalculatePairings(TournamentState state,
                                                            Map<Player, TieBreakers> tieBreakers) {
-        throw new UnsupportedOperationException("Cannot calculate pairings");
+        return Sets.newTreeSet();
     }
 
 }
