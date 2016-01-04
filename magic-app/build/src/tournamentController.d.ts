@@ -6,5 +6,6 @@ declare module Magic.App.Tournament {
         private http;
         constructor($scope: ng.IScope, $http: ng.IHttpService, $state: ng.ui.IStateService);
         startTournament(): void;
+        shufflePlayers(): void;
     }
 }
