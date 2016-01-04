@@ -41,9 +41,9 @@ public class TieBreakers implements Comparable<TieBreakers> {
     private final double opponentGameWinPercentage;
     private final String finalTiebreaker;
 
-    // arbitrarily deciding to round to five decimal places
+    // arbitrarily deciding to round to eight decimal places
     private static double round(double input) {
-        return Math.round(input * 100000d) / 100000d;
+        return Math.round(input * 100000000d) / 100000000d;
     }
 
     /*
