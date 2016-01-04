@@ -37,6 +37,16 @@ module Magic.App.Tournament {
                 this.state.go("instance", {id: encodeURI(tournamentId)});
             });
         }
+
+        public shufflePlayers() {
+            var i = 0, j = 0, temp = {"id": 1, "name": ""};
+            for (i = this.tournamentModel.players.length - 1; i > 0; i -= 1) {
+                j = Math.floor(Math.random() * (i + 1));
+                temp = this.tournamentModel.players[i];
+                this.tournamentModel.players[i] = this.tournamentModel.players[j];
+                this.tournamentModel.players[j] = temp;
+            }
+        }
     }
 
     magic.controller("tournamentController", TournamentController);
