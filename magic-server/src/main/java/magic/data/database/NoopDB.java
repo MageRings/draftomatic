@@ -30,7 +30,7 @@ public final class NoopDB implements Database {
     }
 
     @Override
-    public Set<Player> registerPlayers(List<String> playerNames) throws IOException {
+    public Map<String, Player> registerPlayers(List<String> playerNames) throws IOException {
         throw new UnsupportedOperationException();
     }
 

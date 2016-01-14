@@ -98,14 +98,14 @@ public class HerokuDB implements Database {
     }
 
     @Override
-    public Set<Player> registerPlayers(List<String> playerNames) throws IOException {
+    public Map<String, Player> registerPlayers(List<String> playerNames) throws IOException {
         lock.writeLock().lock();;
         try {
             Set<Player> currentPlayers = getPlayers();
-            Set<Player> addedPlayers = DbUtils.registerPlayers(playerNames, currentPlayers);
+            Map<String, Player> addedPlayers = DbUtils.registerPlayers(playerNames, currentPlayers);
 
             try(Statement st = this.connection.createStatement()) {
-            	String playerData = MAPPER.writeValueAsString(Sets.union(currentPlayers, addedPlayers));
+            	String playerData = MAPPER.writeValueAsString(Sets.union(currentPlayers, Sets.newHashSet(addedPlayers.values())));
             	st.execute("UPDATE players SET names='" + playerData + "' WHERE usr=" + DEFAULT_USER + ";");
             } catch (SQLException e) {
             	throw new RuntimeException(e);

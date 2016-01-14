@@ -19,5 +19,5 @@ public interface Database {
     /**
      * @return For each name in the input, a new player is returned with a unique ID
      */
-    Set<Player> registerPlayers(List<String> playerNames) throws IOException;
+    Map<String, Player> registerPlayers(List<String> playerNames) throws IOException;
 }

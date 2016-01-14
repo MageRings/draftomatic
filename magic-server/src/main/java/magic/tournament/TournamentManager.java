@@ -2,6 +2,7 @@ package magic.tournament;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -11,12 +12,14 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import jersey.repackaged.com.google.common.collect.Sets;
 import magic.data.Player;
 import magic.data.database.Database;
 import magic.data.tournament.TournamentInput;
 import magic.exceptions.TournamentNotFoundException;
 import magic.tournament.swiss.GraphPairing;
 import magic.tournament.swiss.SwissTournament;
+import magic.tournament.swiss.twoheaded.TwoHeadedSwissTournament;
 
 public final class TournamentManager {
 
@@ -27,9 +30,17 @@ public final class TournamentManager {
     	this.db = db;
         try {
             this.db.loadTournaments().forEach((id, data) -> {
-                this.runningTournaments.put(
-                        id,
-                        new SwissTournament(this.db, data, new GraphPairing()));
+            	Tournament t;
+            	switch(data.getInput().getFormat()) {
+            	case LIMITED_2HG_DRAFT:
+            	case LIMITED_2HG_SEALED:
+            		t = new TwoHeadedSwissTournament(this.db, data, new GraphPairing());
+            		break;
+            	default:
+            		t= new SwissTournament(this.db, data, new GraphPairing());
+            		break;
+            	}
+            	this.runningTournaments.put(id, t);
             });
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -44,7 +55,16 @@ public final class TournamentManager {
         while (this.runningTournaments.containsKey(uuid)) {
             uuid = UUID.randomUUID().toString();
         }
-        Tournament t = new SwissTournament(this.db, uuid, registerPlayers(input), numberOfRounds, new GraphPairing());
+        Tournament t;
+        switch(input.getFormat()) {
+        case LIMITED_2HG_DRAFT:
+        case LIMITED_2HG_SEALED:
+        	t = new TwoHeadedSwissTournament(this.db, uuid, registerPlayers(input), numberOfRounds, new GraphPairing());
+        	break;
+        default:
+        	t = new SwissTournament(this.db, uuid, registerPlayers(input), numberOfRounds, new GraphPairing());
+        	break;
+        }
         t.initFirstRound();
         this.runningTournaments.put(uuid, t);
         return uuid;
@@ -54,18 +74,28 @@ public final class TournamentManager {
         List<String> playersToRegister = input.getPlayers().stream().filter(p -> p.getId() <= 0).map(p -> p.getName())
                 .collect(Collectors.toList());
         try {
-            Set<Player> newPlayers = this.db.registerPlayers(playersToRegister);
+            Map<String, Player> newPlayers = this.db.registerPlayers(playersToRegister);
+            Set<Player> seen = Sets.newHashSet();
             Set<Player> players = this.db.getPlayers();
-            input.getPlayers().stream().filter(p -> p.getId() > 0).forEach(p -> {
-                if (!players.contains(p)) {
-                    throw new IllegalArgumentException("Player " + p.getName() + " is not in the database!");
+            List<Player> withIds = Lists.newArrayList();
+            input.getPlayers().stream().forEach(p -> {
+                if (p.getId() > 0) {
+                	if (!players.contains(p)) {
+                		throw new IllegalArgumentException("Player " + p.getName() + " is not in the database!");
+                	}
+                	withIds.add(p);
+                	seen.add(p);
+                } else {
+                	Player player = newPlayers.get(p.getName());
+                	withIds.add(player);
+                	seen.add(player);
                 }
-                newPlayers.add(p);
             });
-            if (newPlayers.size() != input.getPlayers().size()) {
+            if (seen.size() != input.getPlayers().size()) {
                 throw new IllegalArgumentException("Not all input players are unqiue!");
             }
-            return new TournamentInput(input.getFormat(), input.getCode(), Lists.newArrayList(newPlayers));
+
+            return new TournamentInput(input.getFormat(), input.getCode(), withIds);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

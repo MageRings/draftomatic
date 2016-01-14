@@ -1,6 +1,7 @@
 package magic.tournament.swiss;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,7 +38,7 @@ public class SwissTournament extends AbstractTournament {
                            TournamentInput input,
                            Optional<Integer> numberOfRounds,
                            SwissPairingCalculator calculator) {
-        super(
+        this(
                 db,
                 new TournamentData(
                         tournamentId,
@@ -46,19 +47,21 @@ public class SwissTournament extends AbstractTournament {
                         input,
                         ZonedDateTime.now(),
                         null,
-                        Sets.newTreeSet()));
-        this.calculator = calculator;
+                        Sets.newTreeSet()), calculator);
     }
 
     @Override
     protected NavigableSet<Pairing> innerCalculatePairings(TournamentState state,
                                                            Map<Player, TieBreakers> tieBreakers) {
-        return this.calculator.innerCalculatePairings(state, rankPlayers(state, tieBreakers));
+        return this.calculator.innerCalculatePairings(state, rankPlayers(state.getPlayers(), tieBreakers));
     }
 
     public static int getDefaultNumberOfRounds(int numberOfPlayers) {
+    	if (numberOfPlayers == 1) {
+    		return 1;
+    	}
         int closestSmallerPowerOfTwo = Integer.highestOneBit(numberOfPlayers);
-        int minNumberOfRounds = 0;
+        int minNumberOfRounds = 1;
         while (closestSmallerPowerOfTwo >> minNumberOfRounds > 1) {
             minNumberOfRounds++;
         }
@@ -76,11 +79,12 @@ public class SwissTournament extends AbstractTournament {
      * @param tieBreakers
      * @return
      */
-    private static LinkedHashMap<Player, Integer> rankPlayers(TournamentState state,
+    public static LinkedHashMap<Player, Integer> rankPlayers(Collection<Player> allPlayers,
                                                               Map<Player, TieBreakers> tieBreakers) {
         LinkedHashMap<Player, Integer> rankings = Maps.newLinkedHashMap();
-        List<Player> players = Lists.newArrayList(state.getPlayers());
-        Collections.sort(players, (a, b) -> tieBreakers.get(a).compareTo(tieBreakers.get(b)));
+        List<Player> players = Lists.newArrayList(allPlayers);
+        Collections.sort(players, (a, b) -> tieBreakers.getOrDefault(a, TieBreakers.BYE).compareTo(
+        		tieBreakers.getOrDefault(b, TieBreakers.BYE)));
         Collections.reverse(players);
         for (int i = 0; i < players.size(); i++) {
             rankings.put(players.get(i), i);
