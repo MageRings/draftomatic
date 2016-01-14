@@ -192,12 +192,12 @@ public final class FileSystemDB implements Database {
     }
 
     @Override
-    public Set<Player> registerPlayers(List<String> playerNames) throws IOException {
+    public Map<String, Player> registerPlayers(List<String> playerNames) throws IOException {
         lock.writeLock().lock();;
         try {
             Set<Player> currentPlayers = getPlayers();
-            Set<Player> addedPlayers = DbUtils.registerPlayers(playerNames, currentPlayers);
-            mapper.writeValue(DatabaseConstants.PLAYERS.toFile(), Sets.union(addedPlayers, currentPlayers));
+            Map<String, Player> addedPlayers = DbUtils.registerPlayers(playerNames, currentPlayers);
+            mapper.writeValue(DatabaseConstants.PLAYERS.toFile(), Sets.union(Sets.newHashSet(addedPlayers.values()), currentPlayers));
             return addedPlayers;
         } finally {
             lock.writeLock().unlock();

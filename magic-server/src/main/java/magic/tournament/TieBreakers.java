@@ -23,6 +23,8 @@ import magic.data.Player;
 import magic.data.Round;
 
 public class TieBreakers implements Comparable<TieBreakers> {
+	
+	public static final TieBreakers BYE = new TieBreakers(Player.BYE, 0, 0, 0, 0, "");
 
     private static final double MAX_POINTS_PER_MATCH            = 3.0;
     private static final double MAX_POINTS_PER_GAME             = MAX_POINTS_PER_MATCH;
@@ -153,6 +155,12 @@ public class TieBreakers implements Comparable<TieBreakers> {
 
     @Override
     public int compareTo(TieBreakers other) {
+    	if (player.equals(Player.BYE)) {
+    		return LESS;
+    	}
+    	if (other.player.equals(Player.BYE)) {
+    		return GREATER;
+    	}
         if (matchPoints != other.matchPoints) {
             return matchPoints - other.matchPoints;
         }
@@ -165,7 +173,10 @@ public class TieBreakers implements Comparable<TieBreakers> {
         if (opponentGameWinPercentage != other.opponentGameWinPercentage) {
             return opponentGameWinPercentage > other.opponentGameWinPercentage ? GREATER : LESS;
         }
-        return finalTiebreaker.compareTo(other.finalTiebreaker);
+        if (!Objects.equals(finalTiebreaker, other.finalTiebreaker)) {
+        	return finalTiebreaker.compareTo(other.finalTiebreaker);
+        }
+        return player.compareTo(other.player);
     }
 
     private static Map<Player, Collection<Match>> getFlatResults(Collection<Round> results) {

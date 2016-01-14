@@ -9,6 +9,7 @@ public class SwissTournamentTests {
 
     @Test
     public void testDefaultNumberOfRounds() {
+        Assert.assertEquals(1, SwissTournament.getDefaultNumberOfRounds(1));
         Assert.assertEquals(1, SwissTournament.getDefaultNumberOfRounds(2));
         Assert.assertEquals(2, SwissTournament.getDefaultNumberOfRounds(3));
         Assert.assertEquals(2, SwissTournament.getDefaultNumberOfRounds(4));

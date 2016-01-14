@@ -23,11 +23,11 @@ public class TournamentState {
         for (PlayerData d : data) {
             roundData.put(d.getPlayer(), d);
         }
-        Set<Player> alreadyHaveByes = data.stream()
-                .filter(d -> d.getAlreadyMatched().contains(Player.BYE))
-                .map(d -> d.getPlayer())
-                .collect(Collectors.toSet());
         if (roundData.size() % 2 != 0) {
+        	Set<Player> alreadyHaveByes = data.stream()
+        			.filter(d -> d.getAlreadyMatched().contains(Player.BYE))
+        			.map(d -> d.getPlayer())
+        			.collect(Collectors.toSet());
             roundData.put(Player.BYE, new PlayerData(Player.BYE, 0, alreadyHaveByes));
         }
     }
