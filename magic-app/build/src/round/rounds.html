@@ -1,9 +1,10 @@
 {{roundsController.tournamentData}}
 <div ng-if="'LIMITED_DRAFT' === roundsController.tournament.input.format || 'LIMITED_2HG_DRAFT' === roundsController.tournament.input.format">
-    Seatings<br>
+    <b>Seatings</b><br>
     <div ng-repeat="player in roundsController.seatings">
         {{player}}<br>
     </div>
+    <br>
 </div>
 <div ng-repeat="round in roundsController.tournament.rounds.slice(0, roundsController.tournament.currentRound+1)">
   <round round="round"></round>
