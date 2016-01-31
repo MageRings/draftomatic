@@ -13,6 +13,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
@@ -58,9 +59,9 @@ public final class TieBreakersTests {
                                         new Match(p4, p2Win, false, false))))),
                         ImmutableSortedSet.of(
                                 new TieBreakers(KIMBERLY, 0, .75, .2, .75, IGNORED),
-                                new TieBreakers(SAM, 3, .415, .5, .365, IGNORED),
+                                new TieBreakers(SAM, 3, .416667, .5, .366667, IGNORED),
                                 new TieBreakers(RED_HULK, 3, .75, .4, .75, IGNORED),
-                                new TieBreakers(MIKE, 6, .415, 1, .365, IGNORED)),
+                                new TieBreakers(MIKE, 6, .416667, 1, .366667, IGNORED)),
                 },
         });
     }
@@ -95,5 +96,14 @@ public final class TieBreakersTests {
                                 IGNORED))
                         .collect(Collectors.toList())
                         .toString());
+    }
+    
+    @Test
+    public void roundingTest() {
+    	Map<Player, Collection<Match>> flatResults = ImmutableMap.<Player, Collection<Match>>of(
+    			KIMBERLY, ImmutableList.of(new Match(new Pairing(KIMBERLY, RED_HULK, 0), new Result(1, 1666666, 0), false, false)));
+    	Map<Player, Double> actual = TieBreakers.calculatePlayerGameWinPercentages(flatResults);
+    	Assert.assertTrue(.000001 > actual.get(KIMBERLY));
+    	Assert.assertEquals(.000001, TieBreakers.roundOutput(actual.get(KIMBERLY)), .00000000000000001);
     }
 }
