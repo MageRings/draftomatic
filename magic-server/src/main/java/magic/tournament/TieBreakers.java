@@ -30,11 +30,12 @@ public class TieBreakers implements Comparable<TieBreakers> {
     private static final double MAX_POINTS_PER_GAME             = MAX_POINTS_PER_MATCH;
     // note that the terminology "match win" and "game win" is used here to be consistent. however
     // "match point" and "game point" are more correct
-    private static final double MINIMUM_OPPONENT_WIN_PERCENTAGE = .33;
+    private static final double MINIMUM_OPPONENT_WIN_PERCENTAGE = 1.0/3;
 
     // for the unlikely case that a player plays no games
     private static final double DEFAULT_MATCH_WIN_PERCENTAGE = 0;
-    private static final double DEFAULT_GAME_WIN_PERCENTAGE  = DEFAULT_MATCH_WIN_PERCENTAGE;
+    @VisibleForTesting
+    /* package */ static final double DEFAULT_GAME_WIN_PERCENTAGE  = DEFAULT_MATCH_WIN_PERCENTAGE;
 
     private final Player player;
     private final int    matchPoints;
@@ -43,9 +44,10 @@ public class TieBreakers implements Comparable<TieBreakers> {
     private final double opponentGameWinPercentage;
     private final String finalTiebreaker;
 
-    // arbitrarily deciding to round to eight decimal places
-    private static double round(double input) {
-        return Math.round(input * 100000000d) / 100000000d;
+    // round to six decimal places to match reference implementation
+    @VisibleForTesting
+    /* package */ static double roundOutput(double input) {
+        return Math.round(input * 1000000d) / 1000000d;
     }
 
     /*
@@ -72,9 +74,9 @@ public class TieBreakers implements Comparable<TieBreakers> {
                 player -> new TieBreakers(
                         player,
                         pointsPerPlayer.getOrDefault(player, 0),
-                        opponentMatchWinPercentages.getOrDefault(player, 0.0),
-                        playerGameWinPercentages.getOrDefault(player, 0.0),
-                        opponentGameWinPercentages.getOrDefault(player, 0.0),
+                        roundOutput(opponentMatchWinPercentages.getOrDefault(player, 0.0)),
+                        roundOutput(playerGameWinPercentages.getOrDefault(player, 0.0)),
+                        roundOutput(opponentGameWinPercentages.getOrDefault(player, 0.0)),
                         generateRandomTieBreaker(tournamentId, player.getId(), results.size()))));
     }
 
@@ -216,7 +218,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
             int wins = resultsPerPlayer.getValue()
                     .stream()
                     .reduce(0, (sum, result) -> sum += result.getGamePointsForPlayer(player), Integer::sum);
-            return round(wins / (games * MAX_POINTS_PER_GAME));
+            return wins / (games * MAX_POINTS_PER_GAME);
         }));
     }
 
@@ -235,7 +237,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
                 return defaultResult;
             }
             Player player = resultsPerPlayer.getKey();
-            return round(resultsPerPlayer.getValue()
+            return resultsPerPlayer.getValue()
                     .stream()
                     .filter(distinctByOpponent(player))
                     .filter(r -> !r.getPairing().isBye())
@@ -243,7 +245,7 @@ public class TieBreakers implements Comparable<TieBreakers> {
                             Collectors.averagingDouble(
                                     result -> Math.max(
                                             MINIMUM_OPPONENT_WIN_PERCENTAGE,
-                                            playerWinPercentage.get(result.getPairing().getOpponent(player))))));
+                                            playerWinPercentage.get(result.getPairing().getOpponent(player)))));
         }));
     }
 

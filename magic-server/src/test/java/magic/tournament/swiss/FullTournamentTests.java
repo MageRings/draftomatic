@@ -70,9 +70,9 @@ public final class FullTournamentTests {
                                         new Match(p4, p2Win, false, false))))),
                         ImmutableSortedSet.of(
                                 new TieBreakers(KIMBERLY, 0, .75, .2, .75, IGNORED),
-                                new TieBreakers(SAM, 3, .415, .5, .365, IGNORED),
+                                new TieBreakers(SAM, 3, .416667, .5, .366667, IGNORED),
                                 new TieBreakers(RED_HULK, 3, .75, .4, .75, IGNORED),
-                                new TieBreakers(MIKE, 6, .415, 1, .365, IGNORED)),
+                                new TieBreakers(MIKE, 6, .416667, 1, .366667, IGNORED)),
                 },
                 {
                         "Drop a player",
@@ -88,7 +88,7 @@ public final class FullTournamentTests {
                                 new TieBreakers(KIMBERLY, 0, 1, 0, 1, IGNORED),
                                 new TieBreakers(SAM, 3, .5, .6, .4, IGNORED),
                                 new TieBreakers(RED_HULK, 3, .75, .4, .8, IGNORED),
-                                new TieBreakers(MIKE, 6, .415, 1, .365, IGNORED)),
+                                new TieBreakers(MIKE, 6, .416667, 1, .366667, IGNORED)),
                 },
         });
     }
