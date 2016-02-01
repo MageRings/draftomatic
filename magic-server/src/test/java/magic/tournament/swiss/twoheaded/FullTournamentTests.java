@@ -81,13 +81,13 @@ public final class FullTournamentTests {
                         ImmutableList.of(MIKE, KIMBERLY, SAM, RED_HULK, BRIAN, JIM, GREEN_HORNET, ARM_FALL_OFF_BOY),
                         ImmutableList.of(
                                 new Round(1, true, Sets.newTreeSet(ImmutableSet.of(
-                                        new Match(p1, Result.BYE, false, false),
-                                        new Match(p2, Result.BYE, false, false),
+                                        new Match(p1, p2Win, false, false),
+                                        new Match(p2, p2Win, false, false),
                                         new Match(p3, p1Win, false, false),
                                         new Match(p4, p1Win, false, false)))),
                                 new Round(2, true, Sets.newTreeSet(ImmutableSet.of(
-                                        new Match(p5, Result.BYE, false, false),
-                                        new Match(p6, Result.BYE, false, false),
+                                        new Match(p5, p2Win, false, false),
+                                        new Match(p6, p2Win, false, false),
                                         new Match(p7, p1Win, false, false),
                                         new Match(p8, p1Win, false, false))))),
                         ImmutableSortedSet.of(
@@ -105,13 +105,13 @@ public final class FullTournamentTests {
                         ImmutableList.of(MIKE, KIMBERLY, SAM, RED_HULK, BRIAN, JIM),
                         ImmutableList.of(
                                 new Round(1, true, Sets.newTreeSet(ImmutableSet.of(
-                                        new Match(x1, p2Win, false, false),
-                                        new Match(x2, p2Win, false, false),
+                                        new Match(x1, Result.BYE, false, false),
+                                        new Match(x2, Result.BYE, false, false),
                                         new Match(x3, p1Win, false, false),
                                         new Match(x4, p1Win, false, false)))),
                                 new Round(2, true, Sets.newTreeSet(ImmutableSet.of(
-                                        new Match(x5, p2Win, false, false),
-                                        new Match(x6, p2Win, false, false),
+                                        new Match(x5, Result.BYE, false, false),
+                                        new Match(x6, Result.BYE, false, false),
                                         new Match(x7, p1Win, false, false),
                                         new Match(x8, p1Win, false, false))))),
                         ImmutableSortedSet.of(
