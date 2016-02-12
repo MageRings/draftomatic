@@ -11,12 +11,12 @@ module Magic.App.DraftConfig {
         name: string;
         id: number;
     }
-    
+
     export interface ISet {
         name: string;
         value: string;
     }
-    
+
     export interface IDraftConfigController {
 
     }
@@ -56,6 +56,10 @@ module Magic.App.DraftConfig {
                 {
                     name: "Modern Masters 2015",
                     value: "mm2"
+                },
+                {
+                    name: "Oath of the Gatewatch",
+                    value: "otg"
                 }
             ];
             this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
