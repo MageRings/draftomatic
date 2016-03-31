@@ -106,4 +106,16 @@ public final class TieBreakersTests {
     	Assert.assertTrue(.000001 > actual.get(KIMBERLY));
     	Assert.assertEquals(.000001, TieBreakers.roundOutput(actual.get(KIMBERLY)), .00000000000000001);
     }
+    
+    @Test
+    public void finalTiebreakerTest() {
+    	Assert.assertEquals("5N0E8EPDN76B3MDIMI7PUGF6UQEB5BH06FPD31CVVT6TNUHEBM60====",
+    			TieBreakers.generateRandomTieBreaker("tid", 5, 4));
+    	Assert.assertEquals("3TQ7PP0QA7VFA9BVQ6MENE2GL1G9LMQVO4KSR4264KUNSE3V7ACG====",
+    			TieBreakers.generateRandomTieBreaker("id", 5, 4));
+    	Assert.assertEquals("4H4SM4TASL5M623RV394AN4GUQV26V1QAI1ANAL7G011D5QIIOD0====",
+    			TieBreakers.generateRandomTieBreaker("tid", 5, 3));
+    	Assert.assertEquals("FRPQPFIU3A6K2OLEIRIG1FJRQMKT6S4ITCBQI0NL42J8F86J35QG====",
+    			TieBreakers.generateRandomTieBreaker("tid", 6, 4));
+    }
 }
