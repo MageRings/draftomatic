@@ -60,6 +60,10 @@ module Magic.App.DraftConfig {
                 {
                     name: "Oath of the Gatewatch",
                     value: "otg"
+                },
+                {
+                    name: "Shadows Over Innistrad",
+                    value: "soi"
                 }
             ];
             this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
