@@ -91,17 +91,17 @@ public final class FullTournamentTests {
                                         new Match(p7, p1Win, false, false),
                                         new Match(p8, p1Win, false, false))))),
                         ImmutableSortedSet.of(
-                                new TieBreakers(GREEN_HORNET, 0, .5, 0, .5, IGNORED),
-                                new TieBreakers(ARM_FALL_OFF_BOY, 0, .5, 0, .5, IGNORED),
-                                new TieBreakers(MIKE, 3, .666667, .5, .666667, IGNORED),
-                                new TieBreakers(KIMBERLY, 3, .666667, .5, .666667, IGNORED),
-                                new TieBreakers(SAM, 3, .666667, .5, .666667, IGNORED),
-                                new TieBreakers(RED_HULK, 3, .666667, .5, .666667, IGNORED),
-                                new TieBreakers(BRIAN, 6, .5, 1, .5, IGNORED),
-                                new TieBreakers(JIM, 6, .5, 1, .5, IGNORED)),
+                                new TieBreakers(GREEN_HORNET, 0, .5, 0, .5, "CON07IE8KBJ06F6DS483OD6O0R9RFCRJSAP784JKF4DGBLHPGIL0===="),
+                                new TieBreakers(ARM_FALL_OFF_BOY, 0, .5, 0, .5, "3PSEL2QL7M26G9OTHC32O6KMJ5BHJGC6536TF1RF7RQFHF44CB5G===="),
+                                new TieBreakers(MIKE, 3, .666667, .5, .666667, "CL1QGNRFUI1761JIJ2JCRPQDP7GJ9BMJVC010N0M8O5HNT6FB0S0===="),
+                                new TieBreakers(KIMBERLY, 3, .666667, .5, .666667, "PPEU2Q02EK5A7KI5VO8JA1HKE6CIF063C2OBFGPMGU34QP7UGRPG===="),
+                                new TieBreakers(SAM, 3, .666667, .5, .666667, "VEFGSL7VFH2EPJ6ISFF9RT5S98A93TQPHL45095TMM7NKS77M5G0===="),
+                                new TieBreakers(RED_HULK, 3, .666667, .5, .666667, "2VAMT4DMQMBI9BHPFCNQANCQNK32AULBN4PHPC0137POV1UONP8G===="),
+                                new TieBreakers(BRIAN, 6, .5, 1, .5, "J3DMMV7QFLOP26QAUS1S2I5A9GADKE36HTBPCBFBRK8MSR757IR0===="),
+                                new TieBreakers(JIM, 6, .5, 1, .5, "QA87EBMGM34C8MDAF7OIUSE1LJPTAFAEKTT2NM29RQV82CH6USLG====")),
                 },
                 {
-                        "With a byte",
+                        "With a bye",
                         ImmutableList.of(MIKE, KIMBERLY, SAM, RED_HULK, BRIAN, JIM),
                         ImmutableList.of(
                                 new Round(1, true, Sets.newTreeSet(ImmutableSet.of(
@@ -115,12 +115,12 @@ public final class FullTournamentTests {
                                         new Match(x7, p1Win, false, false),
                                         new Match(x8, p1Win, false, false))))),
                         ImmutableSortedSet.of(
-                                new TieBreakers(BRIAN, 3, .5, .666667, .5, IGNORED),
-                                new TieBreakers(JIM, 3, .5, .666667, .5, IGNORED),
-                                new TieBreakers(SAM, 3, .75, .5, .833333, IGNORED),
-                                new TieBreakers(RED_HULK, 3, .75, .5, .833333, IGNORED),
-                                new TieBreakers(MIKE, 6, .5, 1, .5, IGNORED),
-                                new TieBreakers(KIMBERLY, 6, .5, 1, .5, IGNORED)),
+                                new TieBreakers(BRIAN, 3, .5, .666667, .5, "J3DMMV7QFLOP26QAUS1S2I5A9GADKE36HTBPCBFBRK8MSR757IR0===="),
+                                new TieBreakers(JIM, 3, .5, .666667, .5, "QA87EBMGM34C8MDAF7OIUSE1LJPTAFAEKTT2NM29RQV82CH6USLG===="),
+                                new TieBreakers(SAM, 3, .75, .5, .833333, "VEFGSL7VFH2EPJ6ISFF9RT5S98A93TQPHL45095TMM7NKS77M5G0===="),
+                                new TieBreakers(RED_HULK, 3, .75, .5, .833333, "2VAMT4DMQMBI9BHPFCNQANCQNK32AULBN4PHPC0137POV1UONP8G===="),
+                                new TieBreakers(MIKE, 6, .5, 1, .5, "CL1QGNRFUI1761JIJ2JCRPQDP7GJ9BMJVC010N0M8O5HNT6FB0S0===="),
+                                new TieBreakers(KIMBERLY, 6, .5, 1, .5, "PPEU2Q02EK5A7KI5VO8JA1HKE6CIF063C2OBFGPMGU34QP7UGRPG====")),
                 },
         });
     }
@@ -166,18 +166,6 @@ public final class FullTournamentTests {
             tournament.registerResults(Optional.empty(), ImmutableList.copyOf(expectedMatches));
         }
         NavigableSet<TieBreakers> actual = tournament.getTieBreakers(Optional.empty());
-        Assert.assertEquals(
-                this.tieBreakers.toString(),
-                actual.stream()
-                        .map(t -> new TieBreakers(
-                                t.getPlayer(),
-                                t.getMatchPoints(),
-                                t.getOpponentMatchWinPercentage(),
-                                t.getGameWinPercentage(),
-                                t.getOpponentGameWinPercentage(),
-                                IGNORED))
-                        .sorted()
-                        .collect(Collectors.toList())
-                        .toString());
+        Assert.assertEquals(this.tieBreakers.toString(), actual.toString());
     }
 }

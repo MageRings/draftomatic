@@ -114,11 +114,10 @@ public final class RegisterRoundTests {
             t.registerResults(this.roundRequested, this.roundResults);
         } catch (Exception e) {
             if (this.errorExpected != null) {
-                System.out.println(e);
                 Assert.assertEquals(this.errorExpected, e.getMessage());
-                return;
+            } else {
+            	throw e;
             }
-            throw e;
         }
     }
 }
