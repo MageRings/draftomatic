@@ -64,6 +64,10 @@ module Magic.App.DraftConfig {
                 {
                     name: "Shadows Over Innistrad",
                     value: "soi"
+                },
+                {
+                    name: "Eternal Masters",
+                    value: "ema"
                 }
             ];
             this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
