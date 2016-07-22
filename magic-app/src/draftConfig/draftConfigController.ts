@@ -68,6 +68,10 @@ module Magic.App.DraftConfig {
                 {
                     name: "Eternal Masters",
                     value: "ema"
+                },
+                {
+                    name: "Eldritch Moon",
+                    value: "emn"
                 }
             ];
             this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
