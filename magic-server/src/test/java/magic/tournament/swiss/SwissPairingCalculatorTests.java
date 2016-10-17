@@ -43,6 +43,16 @@ public class SwissPairingCalculatorTests {
                         ImmutableSet.of(new Pairing(MIKE, KIMBERLY, 6), new Pairing(SAM, RED_HULK, 0)),
                 },
                 {
+                        "First round",
+                        new TournamentState(Lists.newArrayList(
+                                new PlayerData(MIKE, 0, Sets.newHashSet()),
+                                new PlayerData(KIMBERLY, 0, Sets.newHashSet()),
+                                new PlayerData(SAM, 0, Sets.newHashSet()),
+                                new PlayerData(RED_HULK, 0, Sets.newHashSet()))),
+                        ImmutableMap.of(MIKE, 1, KIMBERLY, 2, SAM, 3, RED_HULK, 4),
+                        ImmutableSet.of(new Pairing(MIKE, KIMBERLY, 0), new Pairing(SAM, RED_HULK, 0)),
+                },
+                {
                         "Test already paired (double pair down)",
                         new TournamentState(Lists.newArrayList(
                                 new PlayerData(MIKE, 3, Sets.newHashSet(KIMBERLY)),

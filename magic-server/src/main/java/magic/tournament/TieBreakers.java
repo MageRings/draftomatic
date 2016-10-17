@@ -103,10 +103,14 @@ public class TieBreakers implements Comparable<TieBreakers> {
      * @param round
      * @return
      */
-    public static String generateRandomTieBreaker(String tournamentId, long playerId, Integer round) {
+    public static String generateRandomTieBreaker(String tournamentId, long playerID, Integer round) {
+    	if (playerID == Player.BYE.getId()) {
+    		// the bye should always sort last
+    		return "\uffff";
+    	}
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            String base = tournamentId + playerId + round;
+            String base = tournamentId + playerID + round;
             return BaseEncoding.base32Hex().encode(md.digest(base.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
