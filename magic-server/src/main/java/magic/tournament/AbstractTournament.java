@@ -6,11 +6,14 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -85,7 +88,7 @@ public abstract class AbstractTournament implements Tournament {
         if (roundRequested.isPresent()) {
             round = roundRequested.get();
         }
-        if (round <= 0) {
+        if (round < 0) {
             throw new IllegalArgumentException("The first round in a tournament is round 1.");
         }
         if (this.getCurrentRound() < round) {
@@ -225,7 +228,14 @@ public abstract class AbstractTournament implements Tournament {
             tieBreakers = TieBreakers.getTieBreakers(state.getPlayers(), this.data.getRounds(), this.data.getId());
         } else {
             Map<Player, Integer> pointsPerPlayer = TieBreakers.calculatePointsPerPlayer(this.data.getRounds());
-            tieBreakers = state.getPlayers().stream().collect(Collectors.toMap(
+            tieBreakers = zeroTieBreakers(round, state.getPlayers(), pointsPerPlayer);
+        }
+        return innerCalculatePairings(state, tieBreakers);
+    }
+    
+    // should be called from within a lock
+    private Map<Player, TieBreakers> zeroTieBreakers(int round, Set<Player> players, Map<Player, Integer> pointsPerPlayer) {
+            return players.stream().collect(Collectors.toMap(
                     Function.identity(),
                     player -> new TieBreakers(
                             player,
@@ -234,8 +244,6 @@ public abstract class AbstractTournament implements Tournament {
                             0,
                             0,
                             TieBreakers.generateRandomTieBreaker(this.data.getId(), player.getId(), round))));
-        }
-        return innerCalculatePairings(state, tieBreakers);
     }
 
     protected abstract NavigableSet<Pairing> innerCalculatePairings(TournamentState state,
@@ -246,6 +254,10 @@ public abstract class AbstractTournament implements Tournament {
         this.lock.readLock().lock();
         try {
             int round = roundToUse(roundRequested);
+            if (round == 0) {
+            	//special case here to produce rankings that can be used for seating
+            	return Sets.newTreeSet(zeroTieBreakers(1, Sets.newHashSet(this.data.getInput().getPlayers()), ImmutableMap.of()).values());
+            }
             Collection<Round> truncatedResults =
                     this.data.getRounds().stream().filter(r -> r.getNumber() <= round).collect(Collectors.toSet());
             // when requested by the user, we should always return the tiebreakers as if this is the
