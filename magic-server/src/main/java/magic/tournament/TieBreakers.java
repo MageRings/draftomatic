@@ -162,27 +162,27 @@ public class TieBreakers implements Comparable<TieBreakers> {
     @Override
     public int compareTo(TieBreakers other) {
     	if (player.equals(Player.BYE)) {
-    		return LESS;
-    	}
-    	if (other.player.equals(Player.BYE)) {
     		return GREATER;
     	}
+    	if (other.player.equals(Player.BYE)) {
+    		return LESS;
+    	}
         if (matchPoints != other.matchPoints) {
-            return matchPoints - other.matchPoints;
+            return other.matchPoints - matchPoints;
         }
         if (opponentMatchWinPercentage != other.opponentMatchWinPercentage) {
-            return opponentMatchWinPercentage > other.opponentMatchWinPercentage ? GREATER : LESS;
+            return opponentMatchWinPercentage > other.opponentMatchWinPercentage ? LESS : GREATER;
         }
         if (gameWinPercentage != other.gameWinPercentage) {
-            return gameWinPercentage > other.gameWinPercentage ? GREATER : LESS;
+            return gameWinPercentage > other.gameWinPercentage ? LESS : GREATER;
         }
         if (opponentGameWinPercentage != other.opponentGameWinPercentage) {
-            return opponentGameWinPercentage > other.opponentGameWinPercentage ? GREATER : LESS;
+            return opponentGameWinPercentage > other.opponentGameWinPercentage ? LESS : GREATER;
         }
         if (!Objects.equals(finalTiebreaker, other.finalTiebreaker)) {
-        	return finalTiebreaker.compareTo(other.finalTiebreaker);
+        	return other.finalTiebreaker.compareTo(finalTiebreaker);
         }
-        return player.compareTo(other.player);
+        return other.player.compareTo(player);
     }
 
     private static Map<Player, Collection<Match>> getFlatResults(Collection<Round> results) {

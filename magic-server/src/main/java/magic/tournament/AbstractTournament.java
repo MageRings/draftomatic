@@ -251,8 +251,7 @@ public abstract class AbstractTournament implements Tournament {
             // when requested by the user, we should always return the tiebreakers as if this is the
             // final round
             return Sets.newTreeSet(
-                    TieBreakers.getTieBreakers(this.data.getInput().getPlayers(), truncatedResults, this.data.getId())
-                            .values()).descendingSet();
+                    TieBreakers.getTieBreakers(this.data.getInput().getPlayers(), truncatedResults, this.data.getId()).values());
         } finally {
             this.lock.readLock().unlock();
         }
