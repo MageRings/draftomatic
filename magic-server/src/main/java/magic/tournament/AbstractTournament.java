@@ -85,6 +85,12 @@ public abstract class AbstractTournament implements Tournament {
         if (roundRequested.isPresent()) {
             round = roundRequested.get();
         }
+        if (round <= 0) {
+            throw new IllegalArgumentException("The first round in a tournament is round 1.");
+        }
+        if (this.getCurrentRound() < round) {
+            throw new IllegalArgumentException("The tournament is currently on round " + this.getCurrentRound() + ", but round " + round + " was requested.");
+        }
         if (round > this.data.getNumberOfRounds()) {
             throw new IllegalArgumentException(
                     "This tournament only has " + this.data.getNumberOfRounds() + " rounds!");
@@ -246,7 +252,7 @@ public abstract class AbstractTournament implements Tournament {
             // final round
             return Sets.newTreeSet(
                     TieBreakers.getTieBreakers(this.data.getInput().getPlayers(), truncatedResults, this.data.getId())
-                            .values());
+                            .values()).descendingSet();
         } finally {
             this.lock.readLock().unlock();
         }

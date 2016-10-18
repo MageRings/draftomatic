@@ -25,7 +25,7 @@
       <th>Opponent Game Win %</th>
       </tr>
       </thead>
-      <tr ng-repeat="result in roundsController.tournament.finalStandings.slice().reverse()">
+      <tr ng-repeat="result in roundsController.tournament.finalStandings.slice()">
       <td ng-if="$odd" style="background-color:#f1f1f1">{{ result.player.name }}</td>
       <td ng-if="$even" >{{ result.player.name }}</td>
       <td ng-if="$odd" style="background-color:#f1f1f1">{{ result.matchPoints }}</td>
