@@ -19,13 +19,19 @@ module Magic.App.Round {
                 this.tournament.currentRound = response.data.currentRound;
                 this.tournament.finalStandings = response.data.finalStandings;
                 this.http.get<any>("api/tournament/standings/" + this.tournamentId + "?round=0").then((response) => {
-                    var numPairs = Math.floor(response.data.length/2);
+                    var evenLength = response.data.length;
+                    if (evenLength%2 != 0) {
+                        evenLength = evenLength - 1;
+                    }
                     this.seatings = new Array(response.data.length);
-                    for (var i = 0; i < numPairs; i += 2) {
-                        this.seatings[i] = response.data[i].player.name;
-                        this.seatings[i+1] = response.data[i + numPairs].player.name;
-                        this.seatings[i+ numPairs] = response.data[i + 1].player.name;
-                        this.seatings[i+ 1 + numPairs] = response.data[i + 1 + numPairs].player.name;
+                    var j = 0;
+                    for (var i = 0; i < evenLength; i += 2) {
+                        this.seatings[j] = response.data[i].player.name;
+                        j++;
+                    }
+                    for (var i = 1; i < evenLength; i += 2) {
+                        this.seatings[j] = response.data[i].player.name;
+                        j++;
                     }
                     if (response.data.length%2 != 0) {
                         //there is a bye
