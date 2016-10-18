@@ -85,7 +85,6 @@ public class SwissTournament extends AbstractTournament {
         List<Player> players = Lists.newArrayList(allPlayers);
         Collections.sort(players, (a, b) -> tieBreakers.getOrDefault(a, TieBreakers.BYE).compareTo(
         		tieBreakers.getOrDefault(b, TieBreakers.BYE)));
-        Collections.reverse(players);
         for (int i = 0; i < players.size(); i++) {
             rankings.put(players.get(i), i);
         }

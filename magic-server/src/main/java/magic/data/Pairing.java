@@ -109,17 +109,18 @@ public class Pairing implements Comparable<Pairing> {
         return true;
     }
 
+    // highest pairing sorts first
     @Override
     public int compareTo(Pairing o) {
         if (o == null) {
-            return 1;
+            return -1;
         }
         if (this.totalPoints != o.totalPoints) {
-            return Integer.compare(this.totalPoints, o.totalPoints);
+            return Integer.compare(o.totalPoints, this.totalPoints);
         }
         if (this.player1.compareTo(o.player1) != 0) {
-            return this.player1.compareTo(o.player1);
+            return o.player1.compareTo(this.player1);
         }
-        return this.player2.compareTo(o.player2);
+        return o.player2.compareTo(this.player2);
     }
 }

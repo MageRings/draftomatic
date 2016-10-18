@@ -91,18 +91,19 @@ public class Result implements Comparable<Result> {
         return true;
     }
 
+    // best results sorts first
     @Override
     public int compareTo(Result o) {
         if (o == null) {
-            return 1;
+            return -1;
         }
         if (this.p1Wins != o.p1Wins) {
-            return Integer.compare(this.p1Wins, o.p1Wins);
+            return Integer.compare(o.p1Wins, this.p1Wins);
         }
         if (this.p2Wins != o.p2Wins) {
-            return Integer.compare(this.p2Wins, o.p2Wins);
+            return Integer.compare(o.p2Wins, this.p2Wins);
         }
-        return Integer.compare(this.draws, o.draws);
+        return Integer.compare(o.draws, this.draws);
     }
 
 }
