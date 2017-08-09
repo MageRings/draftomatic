@@ -49,6 +49,14 @@ var Magic;
                         {
                             name: "Kaladesh",
                             value: "kld"
+                        },
+                        {
+                            name: "Amonkhet",
+                            value: "akh"
+                        },
+                        {
+                            name: "Hour of Devastation",
+                            value: "hou"
                         }
                     ];
                     this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
