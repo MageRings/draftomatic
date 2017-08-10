@@ -21,7 +21,7 @@ Draftomatic is licensed under the GNU Affero GPL v3.0. See [this link](http://bl
 standalone application rather than as a library.  If you think that some portion of the project would be useful to you
 under a more permissive license please let us know.
 
-#Developing
+# Developing
 
 1. Run `./gradlew eclipse`.  This will fetch the java dependencies
 and set up an eclipse project.  Note that if you want to launch the
