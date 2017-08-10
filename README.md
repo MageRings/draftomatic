@@ -29,6 +29,6 @@ application from eclipse you need to manually configure your launch target
 to point to the root of this repository.
 2. Run `npm install`.  This will download the node dependnecies.
 3. Run `gulp watch` in `magic-app`.  This will generate the frontend
-application.  Node that any changes to HTML files must be accompanied
+application.  Note that any changes to HTML files must be accompanied
 by a trivial change to `magic-app/bower.json`.  This is a known issue.
 4.  Before submitting a pull request, use `./gradlew build` to run tests.
