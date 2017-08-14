@@ -12,7 +12,7 @@ You can try out a live instance of draftomatic [here](https://draftomatic.heroku
 
 # About
 
-Draftomatic seeks to provide a client-server architecture for swiss pairings.  Ideally this will disassociate the relatively complicated logic of pairings players from the acts of displaying the
+Draftomatic seeks to provide a client-server architecture for swiss pairings.  Ideally this will disassociate the relatively complicated logic of pairing players from the act of displaying the
 pairings or recording results.
 
 ## License
