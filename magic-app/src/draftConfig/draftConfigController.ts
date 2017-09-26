@@ -84,6 +84,34 @@ module Magic.App.DraftConfig {
                 {
                     name: "Hour of Devastation",
                     value: "hou"
+                },
+                {
+                    name: "Ixalan",
+                    value: "XLN"
+                },
+                {
+                    name: "Iconic Masters",
+                    value: "IMA"
+                },
+                {
+                    name: "Unstable",
+                    value: "UST"
+                },
+                {
+                    name: "Rivals of Ixalan",
+                    value: "RIX"
+                },
+                {
+                    name: "Masters 25",
+                    value: "A25"
+                },
+                {
+                    name: "Dominaria",
+                    value: "DOM"
+                },
+                {
+                    name: "Core 2019",
+                    value: "M19"
                 }
             ];
             this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
