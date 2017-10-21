@@ -71,14 +71,14 @@ public final class TournamentManager {
     }
 
     private TournamentInput registerPlayers(TournamentInput input) {
-        List<String> playersToRegister = input.getPlayers().stream().filter(p -> p.getId() <= 0).map(p -> p.getName())
+        List<String> playersToRegister = input.getPlayers().stream().filter(p -> p.getId() <= 0).map(Player::getName)
                 .collect(Collectors.toList());
         try {
             Map<String, Player> newPlayers = this.db.registerPlayers(playersToRegister);
             Set<Player> seen = Sets.newHashSet();
             Set<Player> players = this.db.getPlayers();
             List<Player> withIds = Lists.newArrayList();
-            input.getPlayers().stream().forEach(p -> {
+            input.getPlayers().forEach(p -> {
                 if (p.getId() > 0) {
                 	if (!players.contains(p)) {
                 		throw new IllegalArgumentException("Player " + p.getName() + " is not in the database!");

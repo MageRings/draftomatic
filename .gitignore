@@ -2,6 +2,7 @@
 .project
 .checkstyle
 
+.idea/
 .gradle/
 .settings/
 node_modules/
@@ -10,3 +11,4 @@ log/
 /data/
 
 magic-distribution/src/dev/data
+magic-server/out

@@ -1,11 +1,6 @@
 package magic.tournament.swiss;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableSet;
+import java.util.*;
 
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
@@ -55,7 +50,7 @@ public class ListSortingPairing implements SwissPairingCalculator {
                                                               Collection<Player> playersInTier,
                                                               Map<Player, Integer> playerRankings) {
         List<Player> rankedPlayers = Lists.newArrayList(playersInTier);
-        Collections.sort(rankedPlayers, (a, b) -> playerRankings.get(a).compareTo(playerRankings.get(b)));
+        rankedPlayers.sort(Comparator.comparing(playerRankings::get));
         Map<Player, IntVar> result = Maps.newHashMap();
         for (int i = 0; i < rankedPlayers.size(); i++) {
             result.put(rankedPlayers.get(i), createPlayerVariable(solver, i, rangeStart, rangeEnd));
@@ -95,11 +90,11 @@ public class ListSortingPairing implements SwissPairingCalculator {
         Solver solver = new Solver();
         Map<Player, IntVar> playerVariables =
                 createPlayerVariables(solver, state.getPlayersAtEachPointLevel(), playerRankings);
-        disallowRepairing(solver, playerVariables, state.getSinglePurposeMap(d -> d.getAlreadyMatched()));
+        disallowRepairing(solver, playerVariables, state.getSinglePurposeMap(PlayerData::getAlreadyMatched));
         solver.post(ICF.alldifferent(playerVariables.values().toArray(new IntVar[0])));
         if (!solver.findSolution()) {
             throw new IllegalStateException("Could not find pairings!");
         }
-        return solutionToPairings(playerVariables, state.getSinglePurposeMap(d -> d.getPoints()));
+        return solutionToPairings(playerVariables, state.getSinglePurposeMap(PlayerData::getPoints));
     }
 }
