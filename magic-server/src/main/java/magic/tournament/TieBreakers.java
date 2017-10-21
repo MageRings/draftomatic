@@ -82,14 +82,14 @@ public class TieBreakers implements Comparable<TieBreakers> {
 
     public static Map<Player, Integer> calculatePointsPerPlayer(Collection<Round> results) {
         Map<Player, Integer> pointsPerPlayer = Maps.newHashMap();
-        results.stream().filter(r -> r.isComplete()).forEach(r -> {
+        results.stream().filter(Round::isComplete).forEach(r ->
             r.getMatches().forEach(m -> {
                 Player player1 = m.getPairing().getPlayer1();
                 Player player2 = m.getPairing().getPlayer2();
                 pointsPerPlayer.merge(player1, m.getPointsForPlayer(player1), Integer::sum);
                 pointsPerPlayer.merge(player2, m.getPointsForPlayer(player2), Integer::sum);
-            });
-        });
+            })
+        );
         return pointsPerPlayer;
     }
 
@@ -97,11 +97,6 @@ public class TieBreakers implements Comparable<TieBreakers> {
      * Creates a value that is intended to be compared against similarly generated values to ensure
      * that each player is paired against a (pseudo)random but deterministic opponent in each round.
      * Each input is a parameter for which the output should be unique.
-     *
-     * @param tournamentId
-     * @param playerId
-     * @param round
-     * @return
      */
     public static String generateRandomTieBreaker(String tournamentId, long playerID, Integer round) {
     	if (playerID == Player.BYE.getId()) {

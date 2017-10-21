@@ -1,13 +1,7 @@
 package magic.tournament.swiss;
 
 import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableSet;
-import java.util.Optional;
+import java.util.*;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -42,8 +36,7 @@ public class SwissTournament extends AbstractTournament {
                 db,
                 new TournamentData(
                         tournamentId,
-                        numberOfRounds.isPresent() ? numberOfRounds.get()
-                            : SwissTournament.getDefaultNumberOfRounds(input.getPlayers().size()),
+                        numberOfRounds.orElseGet(() -> SwissTournament.getDefaultNumberOfRounds(input.getPlayers().size())),
                         input,
                         ZonedDateTime.now(),
                         null,
@@ -75,16 +68,12 @@ public class SwissTournament extends AbstractTournament {
      * Returns a map that gives the position of each player relative to the others. The lowest value
      * in the map corresponds to the player that is doing the best.
      *
-     * @param pointsPerPlayer
-     * @param tieBreakers
-     * @return
      */
     public static LinkedHashMap<Player, Integer> rankPlayers(Collection<Player> allPlayers,
                                                               Map<Player, TieBreakers> tieBreakers) {
         LinkedHashMap<Player, Integer> rankings = Maps.newLinkedHashMap();
         List<Player> players = Lists.newArrayList(allPlayers);
-        Collections.sort(players, (a, b) -> tieBreakers.getOrDefault(a, TieBreakers.BYE).compareTo(
-        		tieBreakers.getOrDefault(b, TieBreakers.BYE)));
+        players.sort(Comparator.comparing(a -> tieBreakers.getOrDefault(a, TieBreakers.BYE)));
         for (int i = 0; i < players.size(); i++) {
             rankings.put(players.get(i), i);
         }

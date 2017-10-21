@@ -69,9 +69,6 @@ public final class PlayerData {
         } else if (!player.equals(other.player)) {
             return false;
         }
-        if (points != other.points) {
-            return false;
-        }
-        return true;
+        return points == other.points;
     }
 }

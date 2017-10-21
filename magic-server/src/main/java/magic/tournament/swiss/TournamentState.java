@@ -26,7 +26,7 @@ public class TournamentState {
         if (roundData.size() % 2 != 0) {
         	Set<Player> alreadyHaveByes = data.stream()
         			.filter(d -> d.getAlreadyMatched().contains(Player.BYE))
-        			.map(d -> d.getPlayer())
+        			.map(PlayerData::getPlayer)
         			.collect(Collectors.toSet());
             roundData.put(Player.BYE, new PlayerData(Player.BYE, 0, alreadyHaveByes));
         }
@@ -36,7 +36,7 @@ public class TournamentState {
         Map<Player, Integer> points = Maps.newHashMap();
         Map<Player, Set<Player>> alreadyMatched = Maps.newHashMap();
         Set<Player> dropped = Sets.newHashSet();
-        rounds.stream().filter(r -> r.isComplete()).forEach(r -> {
+        rounds.stream().filter(Round::isComplete).forEach(r ->
             r.getMatches().forEach(m -> {
                 Player player1 = m.getPairing().getPlayer1();
                 Player player2 = m.getPairing().getPlayer2();
@@ -52,8 +52,8 @@ public class TournamentState {
                 if (m.isP2Drop()) {
                     dropped.add(player2);
                 }
-            });
-        });
+            })
+        );
         List<PlayerData> data = Lists.newArrayListWithCapacity(players.size());
         for (Player p : players) {
             if (dropped.contains(p)) {
@@ -68,20 +68,20 @@ public class TournamentState {
         return roundData;
     }
 
-    public Map<Integer, List<Player>> getPlayersAtEachPointLevel() {
+    /*package*/ Map<Integer, List<Player>> getPlayersAtEachPointLevel() {
         return roundData.values()
                 .stream()
                 .collect(
                         Collectors.toMap(
-                                d -> d.getPoints(),
-                                d -> Lists.<Player> newArrayList(d.getPlayer()),
+                                PlayerData::getPoints,
+                                d -> Lists.newArrayList(d.getPlayer()),
                                 (l1, l2) -> {
                                     l1.addAll(l2);
                                     return l1;
                                 }));
     }
 
-    public int getNumberOfPlayers() {
+    /*package*/ int getNumberOfPlayers() {
         return roundData.size();
     }
 
@@ -89,7 +89,7 @@ public class TournamentState {
         return roundData.keySet();
     }
 
-    public <T> Map<Player, T> getSinglePurposeMap(Function<PlayerData, T> fetcher) {
+    /*package*/ <T> Map<Player, T> getSinglePurposeMap(Function<PlayerData, T> fetcher) {
         return roundData.entrySet()
                 .stream()
                 .collect(Collectors.toMap(Entry::getKey, e -> fetcher.apply(e.getValue())));

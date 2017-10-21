@@ -13,7 +13,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -135,9 +134,6 @@ public abstract class AbstractTournament implements Tournament {
     }
 
     /**
-     *
-     * @param roundRequested
-     * @param thisRoundResults
      * @return - the next round (without results) or null if the tournament is complete
      */
     @Override
@@ -157,7 +153,7 @@ public abstract class AbstractTournament implements Tournament {
             Round expectedRound = this.data.getRounds().pollLast();
             NavigableSet<Match> correctedInput = Sets.newTreeSet();
             Map<Pairing, Match> matchesReceived =
-                    thisRoundResults.stream().collect(Collectors.toMap(m -> m.getPairing(), Function.identity()));
+                    thisRoundResults.stream().collect(Collectors.toMap(Match::getPairing, Function.identity()));
             for (Match m : expectedRound.getMatches()) {
                 Pairing p = m.getPairing();
                 if (!matchesReceived.containsKey(p)) {
