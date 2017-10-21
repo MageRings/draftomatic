@@ -7,6 +7,8 @@ import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.chocosolver.solver.ResolutionPolicy;
 import org.chocosolver.solver.Solver;
@@ -58,33 +60,37 @@ public class GraphPairing implements SwissPairingCalculator {
         return weights;
     }
 
-    // TODO(btoth): have to watch out for overflow here with larger tournaments
     private static int determineSingleEdgeWeight(Player player1,
                                                  Player player2,
                                                  TournamentState state,
                                                  LinkedHashMap<Player, Integer> playerRankings) {
         int weight = 0;
-        if (state.getRoundData().get(player1).getAlreadyMatched().contains(player2)) {
-            // first check to see if they were already matched
-            weight = 2 * state.getNumberOfPlayers();
-        }
-        // then add points equal to the size of each tier separating the players
-        int p1Points = state.getRoundData().get(player1).getPoints();
-        int p2Points = state.getRoundData().get(player2).getPoints();
         NavigableMap<Integer, Integer> numberOfPlayersPerPointTier =
                 state.getPlayersAtEachPointLevel()
                         .entrySet()
                         .stream()
                         .collect(MapCollectorUtils.toNavMap(Entry::getKey, e -> e.getValue().size()));
+
+        if (state.getRoundData().get(player1).getAlreadyMatched().contains(player2)) {
+            // first check to see if they were already matched
+            // would rather have all players mismatched across tiers than have a single pair re-matched
+            weight = state.getNumberOfPlayers() * state.getNumberOfPlayers() *
+                    numberOfPlayersPerPointTier.keySet().size() * numberOfPlayersPerPointTier.lastKey();
+        }
+        // then add points equal to the size of each tier separating the players
+        int p1Points = state.getRoundData().get(player1).getPoints();
+        int p2Points = state.getRoundData().get(player2).getPoints();
         NavigableMap<Integer, Integer> tiersToConsider;
+        final int greaterPoints;
         if (p1Points > p2Points) {
+            greaterPoints = p1Points;
             tiersToConsider = (NavigableMap<Integer, Integer>) numberOfPlayersPerPointTier.subMap(p2Points, p1Points);
         } else {
+            greaterPoints = p2Points;
             tiersToConsider = (NavigableMap<Integer, Integer>) numberOfPlayersPerPointTier.subMap(p1Points, p2Points);
         }
-        for (Integer numPlayers : tiersToConsider.values()) {
-            weight += numPlayers;
-        }
+        // each tier is weighted by the point spread to the initial tier
+        weight += tiersToConsider.entrySet().stream().mapToInt(e -> (greaterPoints - e.getKey()) * e.getValue()).sum();
         // always add a delta to ensure consistent results
         weight += Math.abs(playerRankings.get(player1) - playerRankings.get(player2));
         return weight;

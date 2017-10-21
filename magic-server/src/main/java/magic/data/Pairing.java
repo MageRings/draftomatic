@@ -13,7 +13,7 @@ public class Pairing implements Comparable<Pairing> {
     public Pairing(@JsonProperty("player1") Player player1,
                    @JsonProperty("player2") Player player2,
                    @JsonProperty("totalPoints") int totalPoints) {
-        this.totalPoints = Preconditions.checkNotNull(totalPoints);
+        this.totalPoints = totalPoints;
         Preconditions.checkNotNull(player1, "Player 1 cannot be null!");
         Preconditions.checkNotNull(player2, "Player 2 cannot be null!");
         if (player1.getId() < player2.getId()) {
