@@ -85,6 +85,10 @@ var Magic;
                         {
                             name: "Core 2019",
                             value: "M19"
+                        },
+                        {
+                            name: "Chaos!",
+                            value: "Chaos!"
                         }
                     ];
                     this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
