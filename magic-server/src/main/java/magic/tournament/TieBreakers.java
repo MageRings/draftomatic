@@ -103,9 +103,13 @@ public class TieBreakers implements Comparable<TieBreakers> {
     		// the bye should always sort last
     		return "\uffff";
     	}
+    	return deterministicUUID(tournamentId, playerID, String.valueOf(round));
+    }
+
+    public static String deterministicUUID(String tournamentID, long playerID, String identifier) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            String base = tournamentId + playerID + round;
+            String base = tournamentID + playerID + identifier;
             return BaseEncoding.base32Hex().encode(md.digest(base.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);

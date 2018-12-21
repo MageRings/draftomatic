@@ -27,6 +27,7 @@ under a more permissive license please let us know.
 and set up an eclipse project.  Note that if you want to launch the
 application from eclipse you need to manually configure your launch target
 to point to the root of this repository.
+1. Set your program arguments to `server magic-distribution/src/dev/var/conf/server.yml`. The `Procfile` is a good resource.
 2. Run `npm install`.  This will download the node dependnecies.
 3. Run `gulp watch` in `magic-app`.  This will generate the frontend
 application.  Note that any changes to HTML files must be accompanied
