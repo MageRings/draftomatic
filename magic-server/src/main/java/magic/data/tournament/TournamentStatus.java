@@ -1,9 +1,10 @@
 package magic.data.tournament;
 
+import java.util.List;
 import java.util.NavigableSet;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import magic.data.Player;
 import magic.tournament.TieBreakers;
 
 /*
@@ -15,16 +16,20 @@ public class TournamentStatus {
     private final boolean                   complete;
     private final TournamentData            tournamentData;
     private final NavigableSet<TieBreakers> finalStandings;
+    private final List<Player> seatings;
 
     public TournamentStatus(
-                            @JsonProperty("currentRound") int currentRound,
-                            @JsonProperty("complete") boolean complete,
-                            @JsonProperty("tournamentData") TournamentData tournamentData,
-                            @JsonProperty("finalStandings") NavigableSet<TieBreakers> finalStandings) {
+                            @JsonProperty("currentRound") final int currentRound,
+                            @JsonProperty("complete") final boolean complete,
+                            @JsonProperty("tournamentData") final TournamentData tournamentData,
+                            @JsonProperty("finalStandings") final NavigableSet<TieBreakers> finalStandings,
+                            @JsonProperty("seatings") final List<Player> seatings
+    ) {
         this.currentRound = currentRound;
         this.complete = complete;
         this.tournamentData = tournamentData;
         this.finalStandings = finalStandings;
+        this.seatings = seatings;
     }
 
     public int getCurrentRound() {
@@ -42,4 +47,6 @@ public class TournamentStatus {
     public NavigableSet<TieBreakers> getFinalStandings() {
         return finalStandings;
     }
+
+    public List<Player> getSeatings() {return seatings;}
 }

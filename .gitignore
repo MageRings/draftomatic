@@ -12,3 +12,7 @@ log/
 
 magic-distribution/src/dev/data
 magic-server/out
+
+*.iml
+*.ipr
+*.iws

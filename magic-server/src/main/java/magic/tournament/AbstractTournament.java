@@ -3,6 +3,7 @@ package magic.tournament;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Optional;
@@ -15,7 +16,6 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import magic.data.Match;
 import magic.data.Pairing;
 import magic.data.Player;
@@ -71,11 +71,15 @@ public abstract class AbstractTournament implements Tournament {
             return new TournamentStatus(
                     getCurrentRound(),
                     isComplete(),
-                    this.data,
+                    data,
                     Sets.newTreeSet(TieBreakers.getTieBreakers(
-                            this.data.getInput().getPlayers(),
-                            this.data.getRounds(),
-                            this.data.getId()).values()));
+                            data.getInput().getPlayers(),
+                            data.getRounds(),
+                            data.getId()).values()),
+                    data.getInput().getPlayers().stream().sorted(Comparator.comparing(p ->
+                            TieBreakers.deterministicUUID(data.getId(), p.getId(), "seating" )))
+                            .collect(Collectors.toList())
+            );
         } finally {
             this.lock.readLock().unlock();
         }

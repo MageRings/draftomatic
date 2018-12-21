@@ -18,26 +18,10 @@ module Magic.App.Round {
                 this.tournament.complete = response.data.complete;
                 this.tournament.currentRound = response.data.currentRound;
                 this.tournament.finalStandings = response.data.finalStandings;
-                this.http.get<any>("api/tournament/standings/" + this.tournamentId + "?round=0").then((response) => {
-                    var evenLength = response.data.length;
-                    if (evenLength%2 != 0) {
-                        evenLength = evenLength - 1;
-                    }
-                    this.seatings = new Array(response.data.length);
-                    var j = 0;
-                    for (var i = 0; i < evenLength; i += 2) {
-                        this.seatings[j] = response.data[i].player.name;
-                        j++;
-                    }
-                    for (var i = 1; i < evenLength; i += 2) {
-                        this.seatings[j] = response.data[i].player.name;
-                        j++;
-                    }
-                    if (response.data.length%2 != 0) {
-                        //there is a bye
-                        this.seatings[response.data.length - 1] = response.data[response.data.length-1].player.name;
-                    }
-                });
+                this.seatings = new Array(response.data.seatings.length);
+                for (var i = 0; i < this.seatings.length ; i++) {
+                    this.seatings[i] = response.data.seatings[i].name;
+                }
             });
         }
         
