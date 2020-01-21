@@ -3,10 +3,10 @@ language: java
 sudo: required
 
 jdk:
-  - oraclejdk8
+  - oraclejdk9
 
 install: true
 
 script:
-  - sudo apt-get update && sudo apt-get install oracle-java8-installer
+  - sudo apt-get update && sudo apt-get install oracle-java9-installer
   - java -version
