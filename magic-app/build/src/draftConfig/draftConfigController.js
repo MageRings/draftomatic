@@ -89,6 +89,10 @@ var Magic;
                         {
                             name: "Chaos!",
                             value: "Chaos!"
+                        },
+                        {
+                            name: "Theros: Beyond Death",
+                            value: "THB"
                         }
                     ];
                     this.formats = ["LIMITED_DRAFT", "LIMITED_TEAM_DRAFT", "LIMITED_SEALED",
