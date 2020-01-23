@@ -1,7 +1,7 @@
 buildscript {
     repositories { jcenter() }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.1.1'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.3'
     }
 }
 
@@ -19,14 +19,6 @@ shadowJar {
   mergeServiceFiles()
 }
 
-// ==============
-// Configurations
-// ==============
-configurations {
-    web
-    webDebug
-}
-
 // ============
 // Repositories
 // ============
@@ -39,14 +31,7 @@ repositories {
 // ============
 dependencies {
     compile project(':magic-server')
-
-    web project(path: ':magic-app', configuration: 'web')
-    webDebug project(path: ':magic-app', configuration: 'webDebug')
 }
-
-tasks.getByName('assemble') {
-    dependsOn configurations.web
-    dependsOn configurations.webDebug } 
 // ==================
 // Group + Versioning
 // ==================
@@ -69,7 +54,6 @@ task stage(dependsOn: ['clean', 'shadowJar'])
 // Run: Enable ./gradlew run
 // =========================
 task run(type: JavaExec, overwrite: true) {
-    dependsOn ':magic-app:gulp_build'
 
     classpath project.sourceSets.main.runtimeClasspath
     main 'magic.MagicApplication'

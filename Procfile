@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -Ddw.server.applicationConnectors[0].port=$PORT -Ddw.databaseType=heroku -Ddw.databaseUri=$DATABASE_URL -jar magic-distribution/build/libs/magic-distribution-1.0-all.jar server magic-distribution/src/dev/var/conf/server.yml
+web: java $JAVA_OPTS -Ddw.server.applicationConnectors[0].port=$PORT -Ddw.databaseType=heroku -Ddw.databaseUri=$DATABASE_URL -jar magic-distribution/build/libs/magic-distribution-1.0.jar server magic-distribution/src/dev/var/conf/server.yml

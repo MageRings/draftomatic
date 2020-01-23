@@ -25,6 +25,10 @@ dependencies {
     compile 'org.choco-solver:choco-solver:3.3.0'
     compile 'org.choco-solver:choco-graph:3.3.0'
 
+    // JAX-B dependencies for JDK 9+
+    compile "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
+    compile "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+
     testCompile 'junit:junit:4.12'
 }
 
